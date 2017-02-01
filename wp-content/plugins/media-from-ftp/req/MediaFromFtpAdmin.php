@@ -217,7 +217,6 @@ class MediaFromFtpAdmin {
 				break;
 			case "media-from-ftp_page_mediafromftp-log":
 				$outline = '<p>'.__('Display history of registration.', 'media-from-ftp').'</p>';
-				$outline .= '<p>'.__('If you narrow the browser, it will be displayed for each ID.', 'media-from-ftp').'</p>';
 				$outline .= '<p>'.__('You can export to CSV format.', 'media-from-ftp').'</p>';
 				break;
 			case "media-from-ftp_page_mediafromftp-import":
@@ -402,6 +401,12 @@ class MediaFromFtpAdmin {
 				$this->options_updated($submenu);
 			}
 		}
+		if ( isset($_POST['media_from_ftp_run_cron']) && $_POST['media_from_ftp_run_cron'] ) {
+			if ( check_admin_referer('mff_run_cron', 'media_from_ftp_run_cron') ) {
+				$submenu = 4;
+				$this->options_updated($submenu);
+			}
+		}
 		$mediafromftp_settings = get_option($this->wp_options_name());
 
 		$def_max_execution_time = ini_get('max_execution_time');
@@ -427,20 +432,18 @@ class MediaFromFtpAdmin {
 
 			<div id="mediafromftp-settings-tabs-1">
 			<div style="display: block; padding: 5px 15px">
-			<form method="post" id="mediafromftp_settings_form" action="<?php echo $scriptname; ?>">
-				<?php wp_nonce_field('mff_settings', 'media_from_ftp_settings'); ?>
 				<div class="item-mediafromftp-settings">
 					<h3><?php _e('Date'); ?></h3>
 					<div style="display: block;padding:5px 5px">
-					<input type="radio" name="mediafromftp_dateset" value="new" <?php if ($mediafromftp_settings['dateset'] === 'new') echo 'checked'; ?>>
+					<input type="radio" name="mediafromftp_dateset" form="mediafromftp_settings_form" value="new" <?php if ($mediafromftp_settings['dateset'] === 'new') echo 'checked'; ?>>
 					<?php _e('Update to use of the current date/time.', 'media-from-ftp'); ?>
 					</div>
 					<div style="display: block;padding:5px 5px">
-					<input type="radio" name="mediafromftp_dateset" value="server" <?php if ($mediafromftp_settings['dateset'] === 'server') echo 'checked'; ?>>
+					<input type="radio" name="mediafromftp_dateset" form="mediafromftp_settings_form" value="server" <?php if ($mediafromftp_settings['dateset'] === 'server') echo 'checked'; ?>>
 					<?php _e('Get the date/time of the file, and updated based on it. Change it if necessary.', 'media-from-ftp'); ?>
 					</div>
 					<div style="display: block; padding:5px 5px">
-					<input type="radio" name="mediafromftp_dateset" value="exif" <?php if ($mediafromftp_settings['dateset'] === 'exif') echo 'checked'; ?>>
+					<input type="radio" name="mediafromftp_dateset" form="mediafromftp_settings_form" value="exif" <?php if ($mediafromftp_settings['dateset'] === 'exif') echo 'checked'; ?>>
 					<?php
 					_e('Get the date/time of the file, and updated based on it. Change it if necessary.', 'media-from-ftp');
 					_e('Get by priority if there is date and time of the Exif information.', 'media-from-ftp');
@@ -450,12 +453,12 @@ class MediaFromFtpAdmin {
 					<?php
 					if ( current_user_can('manage_options') ) {
 						?>
-						<input type="checkbox" name="move_yearmonth_folders" value="1" <?php checked('1', get_option('uploads_use_yearmonth_folders')); ?> />
+						<input type="checkbox" name="move_yearmonth_folders" form="mediafromftp_settings_form" value="1" <?php checked('1', get_option('uploads_use_yearmonth_folders')); ?> />
 						<?php
 					} else {
 						?>
-						<input type="checkbox" disabled="disabled" value="1" <?php checked('1', get_option('uploads_use_yearmonth_folders')); ?> />
-						<input type="hidden" name="move_yearmonth_folders" value="<?php echo get_option('uploads_use_yearmonth_folders'); ?>">
+						<input type="checkbox" form="mediafromftp_settings_form" disabled="disabled" value="1" <?php checked('1', get_option('uploads_use_yearmonth_folders')); ?> />
+						<input type="hidden" name="move_yearmonth_folders" form="mediafromftp_settings_form" value="<?php echo get_option('uploads_use_yearmonth_folders'); ?>">
 						<?php
 					}
 					_e('Organize my uploads into month- and year-based folders');
@@ -469,14 +472,14 @@ class MediaFromFtpAdmin {
 					<?php _e('Register the Exif data to the caption.', 'media-from-ftp'); ?>
 					</div>
 					<div style="display:block;padding:5px 0">
-					<input type="checkbox" name="mediafromftp_caption_apply" value="1" <?php checked('1', $mediafromftp_settings['caption']['apply']); ?> />
+					<input type="checkbox" name="mediafromftp_caption_apply" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['caption']['apply']); ?> />
 					<?php _e('Apply'); ?>
 					</div>
 					<div style="display: block; padding:5px 20px;">
 						Exif <?php _e('Tags'); ?>
-						<?php submit_button( __('Default'), 'button', 'mediafromftp_exif_default', FALSE, array( 'style' => 'position:relative; top:-5px;' ) ); ?>
+						<?php submit_button( __('Default'), 'button', 'mediafromftp_exif_default', FALSE, array( 'style' => 'position:relative; top:-5px;', 'form' => 'mediafromftp_settings_form' ) ); ?>
 						<div style="display: block; padding:5px 20px;">
-						<textarea name="mediafromftp_exif_text" style="width: 100%;"><?php echo $mediafromftp_settings['caption']['exif_text']; ?></textarea>
+						<textarea name="mediafromftp_exif_text" form="mediafromftp_settings_form" style="width: 100%;"><?php echo $mediafromftp_settings['caption']['exif_text']; ?></textarea>
 							<div>
 							<a href="https://codex.wordpress.org/Function_Reference/wp_read_image_metadata#Return%20Values" target="_blank" style="text-decoration: none; word-break: break-all;"><?php _e('For Exif tags, please read here.', 'media-from-ftp'); ?></a>
 							</div>
@@ -501,34 +504,41 @@ class MediaFromFtpAdmin {
 					<?php _e('Set the schedule.', 'media-from-ftp'); ?>
 					<?php _e('Will take some time until the [Next Schedule] is reflected.', 'media-from-ftp'); ?>
 					</div>
+					<div style="display:block;padding:5px 0">
 					<?php
-					if ( wp_next_scheduled( 'MediaFromFtpCronHook' ) ) {
-						$next_schedule = ' '.get_date_from_gmt(date("Y-m-d H:i:s", wp_next_scheduled( 'MediaFromFtpCronHook' )));
+					$cron_args = array( 'wp_options_name' => $this->wp_options_name() );
+					if ( wp_next_scheduled( 'MediaFromFtpCronHook', $cron_args ) ) {
+						?>
+						<form method="post" action="<?php echo $scriptname; ?>" />
+						<?php wp_nonce_field('mff_run_cron', 'media_from_ftp_run_cron'); ?>
+						<input type="hidden" name="mediafromftp_run_cron" value="1" />
+						<?php echo __('Next Schedule:', 'media-from-ftp').' '.get_date_from_gmt(date("Y-m-d H:i:s", wp_next_scheduled( 'MediaFromFtpCronHook', $cron_args ))).' ';
+						submit_button( __('Execute now', 'media-from-ftp'), 'large', '', FALSE, array( 'style' => 'position:relative; top:-5px;' ) ); ?>
+						</form>
+						<?php
 					} else {
-						$next_schedule = ' '.__('None');
+						echo __('Next Schedule:', 'media-from-ftp').' '.__('None');
 					}
 					?>
-					<div style="display:block;padding:5px 0">
-					<?php echo __('Next Schedule:', 'media-from-ftp').$next_schedule; ?>
 					</div>
 					<div style="display:block;padding:5px 0">
-					<input type="checkbox" name="mediafromftp_cron_apply" value="1" <?php checked('1', $mediafromftp_settings['cron']['apply']); ?> />
+					<input type="checkbox" name="mediafromftp_cron_apply" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['cron']['apply']); ?> />
 					<?php _e('Apply Schedule', 'media-from-ftp'); ?>
 					</div>
 					<div style="display:block;padding:5px 10px">
-					<input type="radio" name="mediafromftp_cron_schedule" value="hourly" <?php checked('hourly', $mediafromftp_settings['cron']['schedule']); ?>>
+					<input type="radio" name="mediafromftp_cron_schedule" form="mediafromftp_settings_form" value="hourly" <?php checked('hourly', $mediafromftp_settings['cron']['schedule']); ?>>
 					<?php _e('hourly', 'media-from-ftp'); ?>
 					</div>
 					<div style="display:block;padding:5px 10px">
-					<input type="radio" name="mediafromftp_cron_schedule" value="twicedaily" <?php checked('twicedaily', $mediafromftp_settings['cron']['schedule']); ?>>
+					<input type="radio" name="mediafromftp_cron_schedule" form="mediafromftp_settings_form" value="twicedaily" <?php checked('twicedaily', $mediafromftp_settings['cron']['schedule']); ?>>
 					<?php _e('twice daily', 'media-from-ftp'); ?>
 					</div>
 					<div style="display:block;padding:5px 10px">
-					<input type="radio" name="mediafromftp_cron_schedule" value="daily" <?php checked('daily', $mediafromftp_settings['cron']['schedule']); ?>>
+					<input type="radio" name="mediafromftp_cron_schedule" form="mediafromftp_settings_form" value="daily" <?php checked('daily', $mediafromftp_settings['cron']['schedule']); ?>>
 					<?php _e('daily', 'media-from-ftp'); ?>
 					</div>
 					<div style="display:block;padding:5px 10px">
-					<input type="checkbox" name="mediafromftp_cron_limit_number" value="1" <?php checked('1', $mediafromftp_settings['cron']['limit_number']); ?> />
+					<input type="checkbox" name="mediafromftp_cron_limit_number" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['cron']['limit_number']); ?> />
 					<?php _e('Apply limit number of update files.', 'media-from-ftp'); ?>
 					</div>
 					<div style="display:block;padding:5px 20px">
@@ -536,7 +546,7 @@ class MediaFromFtpAdmin {
 						= <a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>"><?php _e('Number of items per page:'); ?></a>
 					</div>
 					<div style="display:block;padding:5px 10px">
-					<input type="checkbox" name="mediafromftp_cron_mail_apply" value="1" <?php checked('1', $mediafromftp_settings['cron']['mail_apply']); ?> />
+					<input type="checkbox" name="mediafromftp_cron_mail_apply" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['cron']['mail_apply']); ?> />
 					<?php _e('Email me whenever'); ?>
 					</div>
 					<div style="display:block;padding:5px 20px">
@@ -550,17 +560,18 @@ class MediaFromFtpAdmin {
 					<?php _e('Record the registration result.', 'media-from-ftp'); ?>
 					</div>
 					<div style="display:block;padding:5px 0">
-					<input type="checkbox" name="mediafromftp_apply_log" value="1" <?php checked('1', $mediafromftp_settings['log']); ?> />
+					<input type="checkbox" name="mediafromftp_apply_log" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['log']); ?> />
 					<?php _e('Create log', 'media-from-ftp'); ?>
 					</div>
 				</div>
 
 				<div style="clear: both;"></div>
 
+			<form method="post" id="mediafromftp_settings_form" action="<?php echo $scriptname; ?>">
+				<?php wp_nonce_field('mff_settings', 'media_from_ftp_settings'); ?>
 				<div style="display: block;padding:5px 5px">
 				<?php submit_button( __('Save Changes'), 'large', 'media-from-ftp-settings-options-apply', FALSE );	?>
 				</div>
-
 			</form>
 
 			</div>
@@ -1312,6 +1323,22 @@ COMMANDLINESET2;
 						echo '<div class="notice notice-success is-dismissible"><ul><li>'.__('Thumbnails Cache', 'media-from-ftp').' --> '.__('Delete').'</li></ul></div>';
 					} else {
 						echo '<div class="notice notice-info is-dismissible"><ul><li>'.__('No Thumbnails Cache', 'media-from-ftp').'</li></ul></div>';
+					}
+				}
+				break;
+			case 4:
+				if ( !empty($_POST['mediafromftp_run_cron']) ) {
+					$cron_args = array( 'wp_options_name' => $this->wp_options_name() );
+					$crons = _get_cron_array();
+					foreach ( $crons as $time => $cron ) {
+						foreach ( $cron as $procname => $task ) {
+							if ( $procname === 'MediaFromFtpCronHook' ) {
+								delete_transient( 'doing_cron' );
+								wp_schedule_single_event( time() - 1, 'MediaFromFtpCronHook', $cron_args );
+								spawn_cron();
+								echo '<div class="notice notice-success is-dismissible"><ul><li>'.__('Schedule was executed.', 'media-from-ftp').'</li></ul></div>';
+							}
+						}
 					}
 				}
 				break;

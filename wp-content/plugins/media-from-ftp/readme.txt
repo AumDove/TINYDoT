@@ -4,7 +4,7 @@ Donate link: http://pledgie.com/campaigns/28307
 Tags: admin, files, ftp, import, media, Post, schedule, sync, uploads
 Requires at least: 3.6.0
 Tested up to: 4.7
-Stable tag: 9.60
+Stable tag: 9.61
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -150,114 +150,29 @@ Register to media library from files that have been uploaded by FTP.
 
 == Changelog ==
 
+= 9.61 =
+Fixed problem of where the next schedule was not displayed.
+Add immediate execution of the schedule.
+
 = 9.60 =
 Add limit number of search files.
 Add limit number of search files for the Command-line.
 Fixed problem of exif error by Command-line.
 
-= 9.59 =
-Fixed problem of read of Class "WP_List_Table".
-Fixed "Warning: array_intersect_key(): Argument #1 is not an array in class-wp-list-table.php on line 453"
-Fixed notices display.
-
-= 9.58 =
-Add stop button to register screen ans import screen.
-
-= 9.57 =
-Fixed problem of Log.
-Fixed problem of exif data insert to caption.
-
-= 9.56 =
-Fixed problem of Error in some search string of filter.
-
-= 9.55 =
-Add wp_nonce_field for Ajax.
-
-= 9.54 =
-Add wp_nonce_field.
-Changed some messages.
-
-= 9.53 =
-Fixed problem of search filter save.
-Add Help Tab.
-
-= 9.52 =
-Add Screen Option items.
-Segmentation of Settings items.
-
-= 9.51 =
-Add Screen Option for number of pages.
-
-= 9.50 =
-Adopted WP_List_Table for search page.
-
 = 9.43 =
 Add author assignment to import.
 
-= 9.42 =
-Fixed problem of Exif Text display.
-
-= 9.41 =
-Change Display for Import.
-
-= 9.40 =
-Import Attachments from a WordPress export file.
-Fixed problem of Javascript.
-
 = 9.33 =
 Fixed problem of Javascript.
-
-= 9.32 =
-Changed how to search file.
-
-= 9.31 =
-Fixed an issue that freezes at the time of a large amount of file registration.
-
-= 9.30 =
-Adopted the Ajax for the file registration.
-Add error handler for the database registration.
-Add setting 'Display of search results'.
-Fixed problem of initial configuration.
 
 = 9.25 =
 Fixed an issue that is not translated.
 
-= 9.24 =
-Add error handler for the set_time_limit.
-Add cron example of the Command-line.
-
-= 9.23 =
-Fixed problem of initial configuration.
-
-= 9.22 =
-Add search option for filename like a-b-0x0.jpg.
-Fixed problem of Initial setting.
-Fixed problem of uninstall.
-Change mediafromftpcmd.php.
-
 == Upgrade Notice ==
 
+= 9.61 =
 = 9.60 =
-= 9.59 =
-= 9.58 =
-= 9.57 =
-= 9.56 =
-= 9.55 =
-= 9.54 =
-= 9.53 =
-= 9.52 =
-= 9.51 =
-= 9.50 =
 = 9.43 =
-= 9.42 =
-= 9.41 =
-= 9.40 =
 = 9.33 =
-= 9.32 =
-= 9.31 =
-= 9.30 =
 = 9.25 =
-= 9.24 =
-= 9.23 =
-= 9.22 =
 

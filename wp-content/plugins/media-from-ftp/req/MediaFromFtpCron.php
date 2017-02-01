@@ -32,10 +32,10 @@ class MediaFromFtpCron {
 		$args = array( 'wp_options_name' => $option_name );
 
 		if ( $mediafromftp_settings['cron']['apply'] ) {
-			if ( !wp_next_scheduled( 'MediaFromFtpCronHook' ) ) {
+			if ( !wp_next_scheduled( 'MediaFromFtpCronHook', $args ) ) {
 				wp_schedule_event(time(), $mediafromftp_settings['cron']['schedule'], 'MediaFromFtpCronHook', $args);
 			} else {
-				if ( wp_get_schedule( 'MediaFromFtpCronHook' ) <> $mediafromftp_settings['cron']['schedule'] ) {
+				if ( wp_get_schedule( 'MediaFromFtpCronHook', $args ) <> $mediafromftp_settings['cron']['schedule'] ) {
 					wp_clear_scheduled_hook('MediaFromFtpCronHook', $args);
 					wp_schedule_event(time(), $mediafromftp_settings['cron']['schedule'], 'MediaFromFtpCronHook', $args);
 				}
