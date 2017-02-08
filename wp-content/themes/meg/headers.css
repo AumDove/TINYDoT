@@ -79,7 +79,6 @@ and open the template in the editor.
 @media screen and (min-height:320px) and (min-width:480px){
     .full-header {
        
-
         font-size:16px;
         flex-wrap:wrap;
         flex-direction:row;
@@ -95,7 +94,7 @@ and open the template in the editor.
     }
     h1#hero-text {
         width:60%;
-        font-size:2.5em;
+        font-size:1.5em;
         margin-left:1em;
         order:2;
 
@@ -244,8 +243,9 @@ and open the template in the editor.
     }
     h1#hero-text {
         width:auto;
-        font-size:4em;
+        font-size:2.75em;
         margin:.5em;
+        
     }
 
     img#headshot-image {
@@ -331,18 +331,15 @@ and open the template in the editor.
     }
     p#front-decoration {
         font-size:1em;
-        color:#004466;
-       
+        color:#004466;       
         margin:1em .5em 0 0;
-        
-        
         align-self:flex-end;
         width:auto;
     }
     h1#hero-text {
         margin-bottom:.25em;
         width:auto;
-        font-size:3em;
+        font-size:2em;
         align-self:center;
         font-weight:bold;
         text-shadow:none;
@@ -354,9 +351,8 @@ and open the template in the editor.
         margin:0;
         padding:0;
         width:90%;
-        font-size:1.25em;
+        font-size:1.15em;
         font-weight:normal;
-
         color:#004466;
         align-self:center;
     }
@@ -409,7 +405,7 @@ and open the template in the editor.
     h1#hero-text {
         margin-bottom:.25em;
         width:auto;
-        font-size:3em;
+        font-size:2.5em;
         align-self:center;
         font-weight:bold;
         text-shadow:none;
