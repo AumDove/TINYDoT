@@ -1,0 +1,10 @@
+*.log
+#ignore the following
+.DS_Store
+nbproject
+# wordpress specific
+.htaccess
+web.config
+wp-config.php
+.jscsrc
+.jshintignore
