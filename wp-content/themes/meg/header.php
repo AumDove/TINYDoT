@@ -55,7 +55,8 @@
                                  <p id="front-decoration">Hello, world!</p>
                                 <img id="headshot-image" src="<?php echo get_bloginfo('template_url') ?>/img/headshot-meg-two.jpg"/> 
                                 <h1 id="hero-text">I&apos;m Meg ...</h1>
-                                <p id="full-hero-text">I build functional, simple websites for people who are ready to get started on the web. Using developer skills, I help marketers and small business owners find their place on the web. Quickly.</p> 
+                                <p id="full-hero-text">I build functional, simple websites for people who are ready to get started on the web. 
+                                    Using developer skills, I help marketers and small business owners find their place on the web. Quickly.</p> 
 
                                 <div class="flex-container-nav">    
                                     <a id="button-one" href="#skip-to-featured" class="nav-button" >Work</a>
