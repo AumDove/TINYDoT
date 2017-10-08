@@ -59,7 +59,7 @@
 
                                 <div class="flex-container-nav">    
                                     <a id="button-one" href="#skip-to-featured" class="nav-button" >Work</a>
-                                    <a id="button-two" href="#skip-to-contact" class="nav-button" >Contact</a>
+                                    <a id="button-two" href="#skip-to-course-section" class="nav-button" >Enroll</a>
                                 </div>
                             </div> 
                             </div>

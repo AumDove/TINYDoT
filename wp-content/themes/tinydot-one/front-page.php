@@ -12,7 +12,7 @@ get_header(); ?>
 
 <div id="primary" class="content-area">
     <main id="front" class="site-main" role="main">
-        <div class="course-section">
+        <div id="skip-to-course-section" class="course-section">
             <div class="">
             <h4 class="course-head">Learn with TiNYDoT</h4>
             <h5 class="course-sub-head">Build Your Business &AMP; Keep Your Sanity</h5>
