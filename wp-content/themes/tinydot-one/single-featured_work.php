@@ -69,7 +69,7 @@ get_header(); ?>
                         <a href="mailto:tinydotllc@gmail.com?subject=Hey, Meg! What's the next step?">
                             <?php
                                     printf(
-                                            wp_kses( __( 'Contact Me', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
+                                            wp_kses( __( 'Contact Us', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
                                             the_title( '<span class="screen-reader-text">"', '"</span>', false )
                                     );
                             ?>

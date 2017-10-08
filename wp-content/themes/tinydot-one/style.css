@@ -1959,6 +1959,8 @@ p.entry-meta {
 /*-----------------------
 # Header 
 -------------------------*/
+
+
 .site-header {
     background-size:cover;
     background-position:40% 40%;
@@ -2009,7 +2011,7 @@ img.custom-logo {
 .site-branding {
     width: auto;
     height:100vh;
-    background-color: rgba(9, 53, 85, 0.75);
+    background: rgba(38,46,69, .90);
     /*display:flex;*/
 }
 
@@ -2086,8 +2088,8 @@ img.custom-logo {
 
 .reduced-header {
     width: auto;
-    height: 4em;
-    background: #BCD8F2;
+    height: 6em;
+    background: rgba(38,46,69, .75);
     background-size: cover;
     font-size:16px;
     display:flex;
@@ -2098,9 +2100,10 @@ img.custom-logo {
         display:flex;
         justify-content: center;
         order:1;
-        font-size: 1.25em;
+        font-size: 1.5em;
+        font-weight:400;
         font-family: 'Nothing You Could Do', cursive;
-        color: #272F45;
+        color: #f1f3f1;
 /*        padding-top:2.5rem;*/
     }
     .reduced-header-nav {
@@ -2110,32 +2113,6 @@ img.custom-logo {
     .flex-container-nav {
          order:5;
     }
-/*-----------------------
-# Featured Work
--------------------------*/
-
-
-/*-----------------------
-# Projects List
--------------------------*/
-
-
-/*-----------------------
-# Contact
--------------------------*/
-
-
-/*-----------------------
-# Blog
--------------------------*/
-
-
-/*-----------------------
-# Footer
--------------------------*/
-
-
-
 
 /*------------------------------------------
 BEGIN MEDIA QUERIES
@@ -2264,7 +2241,7 @@ BEGIN MEDIA QUERIES
     .header-container {
         position: relative;
         margin-left: 8rem;
-        background-color: rgba(9, 53, 85, 0.75);
+        background: rgba(38,46,69, .90);
         width: 65%;
         height: 65vh;
         border-radius: 20px;/*
@@ -2306,9 +2283,11 @@ BEGIN MEDIA QUERIES
         font-size:1.25em;
         /*background:#004466;*/
     }
-
+    #reduced-hero-text{
+        font-size: 2.5em;
+    }
 }
-
+    
 /* Tablet Landscape Styles */
 
 @media screen and (min-height:1020px) and (max-width:1024px){
@@ -2329,7 +2308,7 @@ BEGIN MEDIA QUERIES
         /*font-weight:bold;*/
         text-shadow:none;
         margin: 13% 5%;
-        font-size:300%;
+        font-size:375%;
         display:flex;
     }
     #full-hero-text {
@@ -3445,13 +3424,13 @@ a:active {
 /* **************** Post Meta **************** */
 /* ******************************************* */
 .entry-meta {
-        margin: 0 -1.473684210526316em;
+/*        margin: 0 -1.473684210526316em;
         padding: 2em 1.473684210526316em;
 	font-family: "Fira Sans", sans-serif;
 	font-size: 95%;
 	font-style: italic;
 	text-align: center;
-	background: #eee;
+	background: #eee;*/
 }
 @media screen and (min-width: 30em) {
 	.entry-meta {
@@ -3955,7 +3934,7 @@ p.course-intro{
             margin:2rem 0;
         }
         li.individual-course-info p a{
-            font-family: 'Indie Flower', cursive;
+            font-family: 'Merriweather', sans-serif;
             font-size:1.2em;
             margin-left: 0em;
             text-decoration: none;
@@ -3963,7 +3942,7 @@ p.course-intro{
         }
         
         li.individual-course-info h6 {
-            font-family: 'Lato', sans-serif;
+            font-family: 'Merriweather', sans-serif;
             font-size: 1.25em;
             color:#176BA7;
             margin-top:.15em;
@@ -3996,7 +3975,7 @@ h4.front-headline {
 }
  h3.single-title {
     text-align: center;
-    font-family: 'Nothing You Could Do', cursive;
+    font-family: 'Merriweather', sans-serif;
     color:#004466;
     margin-top: .75em;
     margin-bottom:2em;
@@ -4024,14 +4003,14 @@ ul.frontpage-flexbox-featured{
         }
             li.individual-frontpage-featured h3 a {
                 text-decoration:none;
-                font-family: 'Nothing You Could Do', cursive;
+                    font-family: 'Merriweather', sans-serif;
                 align-self:center;
             }
             li.individual-frontpage-featured figure {
                 align-self:center;
             }
         li.individual-frontpage-featured p a{
-            font-family: 'Indie Flower', cursive;
+            font-family: 'Merriweather', sans-serif;
             font-size:1.2em;
             margin-left: 0em;
             text-decoration: none;
@@ -4039,7 +4018,7 @@ ul.frontpage-flexbox-featured{
         }
         
         li.individual-frontpage-featured h6 {
-            font-family: 'Indie Flower', cursive;
+            font-family: 'Merriweather', sans-serif;
             font-size: 1em;
             color:#176BA7;
             margin-top:.15em;
@@ -4070,7 +4049,7 @@ span#noticed {
 .featured-work-meta h3,
 .single-work-meta h3 {
     text-align: center;
-    font-family: 'Nothing You Could Do', cursive;
+    font-family: 'Merriweather', sans-serif;
     font-size:2em;
     color:#004466;
     margin-top: .75em;
@@ -4082,7 +4061,7 @@ span#noticed {
     font-size:1.15em;
     color:#176BA7;
     padding:0;
-    margin-top:2em;
+    margin:2em;
     text-align:center;
 }
     .featured-work-meta h6 span,
@@ -4151,7 +4130,7 @@ figure.single-image img{
         padding:0 1.25em;
     }
     li.individual-frontpage-featured h3 a {
-        font-size:.75em;
+        font-size:.65em;
     }
     li.individual-frontpage-featured img {
         width:30em;
@@ -4175,7 +4154,7 @@ figure.single-image img{
     }
     h3.single-title {
         text-align: center;
-        font-family: 'Nothing You Could Do', cursive;
+        font-family: 'Merriweather', sans-serif;
         font-size:2.25em;
         color:#004466;
         margin-top: .75em;
@@ -4222,7 +4201,7 @@ figure.single-image img{
     .reduced-header {
         width: 100vw;
         height: 6em;
-        background: #e8fbfd;
+        background: rgba(38,46,69, .75);
         background-size: cover;
     }
     .reduced-header h1#hero-text {
@@ -4538,10 +4517,11 @@ img.alignleft {
 
 .site-footer {
     padding: 3em 1em;
+    line-height:1.5em;
     font-family: 'Fira Sans', sans-serif;
     text-align: center;
     color:#e8fbfd;
-    background-color: #004466;
+    background-color: #262e45;
 }
 .site-footer a {
     color: #fff;

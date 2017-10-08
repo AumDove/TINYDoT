@@ -113,7 +113,7 @@ get_header(); ?>
                     </a>
                 </div>
             </div>-->
-             <div class="blog-button">
+<!--             <div class="blog-button">
                 <h4 class="front-headline">Read Our Blog</h4>
                 <p>While I love to write blogs and short articles, I find myself coding up designs much more often than I find myself blogging these days. Nonetheless, you are always welcome to check out my blog where I share experiences in starting and running a very small home business, staying sane in a small world of doing <strong>ALL</strong> the jobs, all the time, and my fiancee even chimes in with a perspective that only Joe can offer. Click the button below to check it out!</p>
                 <div class="continue-reading  front-blog">
@@ -127,7 +127,7 @@ get_header(); ?>
                         ?>
                     </a>
                 </div>
-            </div>
+            </div>-->
 
     </main><!-- #main -->
 </div><!-- #primary -->
