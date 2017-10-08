@@ -55,7 +55,10 @@ and open the template in the editor.
     #hero-text {
         order:2;  
         font-size:.75em;
+        letter-spacing: -5px;
+        word-spacing: -15px;
     }
+    
     #headshot-image {
         order:3;
     }
@@ -307,7 +310,7 @@ and open the template in the editor.
 /*Square Screens*/
 @media screen and (min-width:1000px) and (min-height:660px) {
     .site-branding {
-        background-image: url(img/meg-lav-maui.jpg);
+        background-image: url(img/desk-front-page.jpg);
         background-position:25% 40%;
         display:flex;
         justify-content: flex-end;
@@ -374,7 +377,7 @@ and open the template in the editor.
 
 @media screen and (min-width:1200px) and (min-height:600px){
     .site-branding {
-        background-image: url(img/meg-lav-maui.jpg);
+        background-image: url(img/desk-front-page.jpg);
         background-position:25% 40%;
         display:flex;
         justify-content: flex-end;
@@ -442,7 +445,7 @@ and open the template in the editor.
 @media screen and (min-width:1280px) and (min-height:950px){
 
     .site-branding {
-        background-image: url(img/meg-lav-maui.jpg);
+        background-image: url(img/desk-front-page.jpg);
         background-position:30% 50%;
         display:flex;
         justify-content: flex-end;

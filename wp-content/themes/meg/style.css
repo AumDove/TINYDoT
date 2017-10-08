@@ -2,7 +2,7 @@
 Theme Name: Meg
 Theme URI: http://likeusmarketing.com
 Author: Meg Miller
-Author URI: http://www.tinydot-llc.dev
+Author URI: http://www.megzencoding.dev
 Description: Marketing Excellence with Gratitude theme for internet marketers
 Version: 0.0.1
 License: GNU General Public License v2 or later
@@ -843,8 +843,6 @@ a:active {
         width:98%;
         height:100vh;
         font-size:18px;
-
-        
         display:flex;
         align-items: center;
         flex-direction:column;

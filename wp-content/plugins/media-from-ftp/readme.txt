@@ -1,10 +1,10 @@
 === Media from FTP ===
 Contributors: Katsushi Kawamori
-Donate link: http://pledgie.com/campaigns/28307
-Tags: admin, files, ftp, import, media, Post, schedule, sync, uploads
+Donate link: https://pledgie.com/campaigns/28307
+Tags: files, ftp, import, media, sync, uploads
 Requires at least: 3.6.0
-Tested up to: 4.7
-Stable tag: 9.61
+Tested up to: 4.8
+Stable tag: 9.82
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -16,10 +16,7 @@ Register to media library from files that have been uploaded by FTP.
 * This create a thumbnail of the image file.
 * This create a metadata(Images, Videos, Audios).
 * Change the date/time.
-* Register the Exif data to the caption.
-* Work with [DateTimePicker](http://xdsoft.net/jqplugins/datetimepicker/). jQuery plugin select date/time.
-* If use the Schedule options, can periodically run.
-* The execution of the command line is supported.(mediafromftpcmd.php)
+* Work with [DateTimePicker](https://xdsoft.net/jqplugins/datetimepicker/). jQuery plugin select date/time.
 * Export the log to a CSV file.
 * To Import the files to Media Library from a WordPress export file.
 * You can register a large number of files without timeout work with Ajax.
@@ -28,11 +25,12 @@ Register to media library from files that have been uploaded by FTP.
 * In the media uploader, you may not be able to upload by the environment of server. That's when the files are large. You do not mind the size of the file if FTP.
 
 = Special Thanks! Created Banner & Icon =
-* [Li-An](http://www.li-an.fr/blog/)
+* [Li-An](https://www.li-an.fr/blog/)
 
 = Special Thanks! Translator =
-* Deutsch [dionysous](https://profiles.wordpress.org/dionysous/)
-* Français [Li-An](http://www.echodesplugins.li-an.fr/)
+* Deutsch [pixelverbieger](https://www.pixelverbieger.de/)
+* Español [apasionados](https://apasionados.es/)
+* Français [Li-An](https://www.echodesplugins.li-an.fr/)
 
 == Installation ==
 
@@ -44,11 +42,9 @@ Register to media library from files that have been uploaded by FTP.
 = A server error is displayed because there are too many files. "Search & Register" screen does not appear. =
 * Media from FTP Settings -> Other -> Limit number of search files
 * Please reduce this number.
-* It is convenient to use the schedule function together.
-* Media from FTP Settings -> Register -> Schedule
 
 = Certain file types can not be searched. =
-* If you want to add the mime type that can be used in the media library to each file type, Please use the <a href="http://wordpress.org/plugins/mime-types-plus/">Mime Types Plus</a>.
+* If you want to add the mime type that can be used in the media library to each file type, Please use the <a href="https://wordpress.org/plugins/mime-types-plus/">Mime Types Plus</a>.
 
 = I will not find a file with name like this: a-b-0x0.jpg. =
 * Media from FTP Search & Register -> Screen Options -> Search method for the exclusion of the thumbnail
@@ -86,9 +82,6 @@ Register to media library from files that have been uploaded by FTP.
 * Media from FTP Settings -> Other -> Execution time
 * Please increasing the number of seconds.
 
-= 'Fatal error: Call to undefined function getopt()' get an error message in Windows Server. =
-* Media from FTP uses the [getopt](http://php.net/manual/en/function.getopt.php). In the case of Windows, please use the PHP5.3.0 higher versions.
-
 = I want to change the date at the time of registration. =
 * Media from FTP Settings -> Register -> Date -> Get the date/time of the file, and updated based on it. Change it if necessary.
 * Please checked.
@@ -97,38 +90,9 @@ Register to media library from files that have been uploaded by FTP.
 * Media from FTP Settings -> Register -> Date -> Get the date/time of the file, and updated based on it. Change it if necessary.Get by priority if there is date and time of the Exif information. 
 * Please checked.
 
-= I want to register the Exif information in the caption of the media library. =
-* Media from FTP Settings -> Register -> Exif Caption
-
-= In Exif Caption, I want to change the display order of the Exif. =
-* Please swapping the order of the Exif Tags. Please save your settings.
-
 = I would like to hide the files do not need to search & registration screen. =
 * Media from FTP Search & Register -> Screen Options -> Exclude file
 * Please enter the exclusion file. It can be a regular expression.
-
-= Periodically, I would like to register. =
-* There is a schedule function.
-* Media from FTP Settings -> Register -> Schedule
-
-= I want to limit the number of registered every once in a schedule. =
-* Media from FTP Search & Register -> Screen Options -> Number of items per page:
-* Enter a numeric value.
-* Media from FTP Settings -> Register -> Schedule -> Apply Schedule
-* Please checked.
-* Media from FTP Settings -> Register -> Schedule -> Apply limit number of update files.
-* Please checked.
-
-= I would like to apply a more finely schedule. =
-* Use the mediafromftpcmd.php, please register on the server cron.
-
-= File is located in a large amount. I would like to register without having to worry about the running time. =
-* If you can use the command line, please use the mediafromftpcmd.php.
-
-= mediafromftpcmd.php does not run. =
-* Rewriting is need.
-* Media from FTP Settings -> Command-line
-* Please look at.
 
 = I want to turn off the creation of additional images such as thumbnail. =
 * It conforms to the WordPress settings.
@@ -150,29 +114,19 @@ Register to media library from files that have been uploaded by FTP.
 
 == Changelog ==
 
-= 9.61 =
-Fixed problem of where the next schedule was not displayed.
-Add immediate execution of the schedule.
+= 9.82 =
+Fixed problem of add-ons.
 
-= 9.60 =
-Add limit number of search files.
-Add limit number of search files for the Command-line.
-Fixed problem of exif error by Command-line.
+= 9.81 =
+Fixed problem of add-ons.
 
-= 9.43 =
-Add author assignment to import.
-
-= 9.33 =
-Fixed problem of Javascript.
-
-= 9.25 =
-Fixed an issue that is not translated.
+= 9.80 =
+Fixed problem of "PHP object injection" by import.
+Fixed problem of add-ons.
 
 == Upgrade Notice ==
 
-= 9.61 =
-= 9.60 =
-= 9.43 =
-= 9.33 =
-= 9.25 =
+= 9.82 =
+= 9.81 =
+= 9.80 =
 

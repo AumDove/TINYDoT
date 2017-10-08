@@ -39,8 +39,16 @@ jQuery(function(){
 		}
 	});
 
-	/* Date Time Picker */
-	jQuery(':input[id^=datetimepicker-mediafromftp]').datetimepicker({format:'Y-m-d H:i'});
+	/* Select bulk Date time */
+	jQuery('input[name="bulk_mediafromftp_datetime"]').change( function(){
+		var edit_date_time_val = jQuery('input[name="bulk_mediafromftp_datetime"]').val();
+		jQuery(':input[id^=datetimepicker-mediafromftp]').val(edit_date_time_val);
+	});
+
+	/* All check for Checkbox */
+	jQuery('.event-mediafromftp-checkAll').on('change', function() {
+		jQuery('.' + this.id).prop('checked', this.checked);
+	});
 
 	/* Ajax for register */
 	var mediafromftp_defer = jQuery.Deferred().resolve();
@@ -48,15 +56,65 @@ jQuery(function(){
 
 		var new_url = new Array();
 		var new_datetime = new Array();
+		var new_mlccategory = new Array();
+		var new_emlcategory = new Array();
+		var new_mlacategory = new Array();
+		var new_mlatags = new Array();
 		var form_names = jQuery("#mediafromftp_ajax_update").serializeArray();
+		var mlccount = 0;
+		var emlcount = 0;
+		var mlacatcount = 0;
+		var mlatagcount = 0;
 		jQuery.each(form_names, function(i) {
 			if ( form_names[i].name.indexOf("[url]") != -1 ) {
 				new_url[i] = form_names[i].value;
-				new_datetime[i] = form_names[i+1].value;
+			}
+			if ( form_names[i].name.indexOf("[datetime]") != -1 ) {
+				new_datetime[i] = form_names[i].value;
+			}
+			if ( form_names[i].name.indexOf("[mlccount]") != -1 ) {
+				mlccount = form_names[i].value;
+				var form_checkbox = ".mlccheckbox" + mlccount + " input:checked";
+				var value="";
+				jQuery(form_checkbox).each(function() {
+					value = jQuery(this).val() + ',' + value;
+				});
+				new_mlccategory[i] = value.substr( 0, value.length-1 );
+			}
+			if ( form_names[i].name.indexOf("[emlcount]") != -1 ) {
+				emlcount = form_names[i].value;
+				var form_checkbox = ".emlcheckbox" + emlcount + " input:checked";
+				var value="";
+				jQuery(form_checkbox).each(function() {
+					value = jQuery(this).val() + ',' + value;
+				});
+				new_emlcategory[i] = value.substr( 0, value.length-1 );
+			}
+			if ( form_names[i].name.indexOf("[mlacatcount]") != -1 ) {
+				mlacatcount = form_names[i].value;
+				var form_checkbox = ".mlacatcheckbox" + mlacatcount + " input:checked";
+				var value="";
+				jQuery(form_checkbox).each(function() {
+					value = jQuery(this).val() + ',' + value;
+				});
+				new_mlacategory[i] = value.substr( 0, value.length-1 );
+			}
+			if ( form_names[i].name.indexOf("[mlatagcount]") != -1 ) {
+				mlatagcount = form_names[i].value;
+				var form_checkbox = ".mlatagcheckbox" + mlatagcount + " input:checked";
+				var value="";
+				jQuery(form_checkbox).each(function() {
+					value = jQuery(this).val() + ',' + value;
+				});
+				new_mlatags[i] = value.substr( 0, value.length-1 );
 			}
 		});
 		var new_url = jQuery.grep(new_url, function(e){return e;});
 		var new_datetime = jQuery.grep(new_datetime, function(e){return e;});
+		var new_mlccategory = jQuery.grep(new_mlccategory, function(e){return e;});
+		var new_emlcategory = jQuery.grep(new_emlcategory, function(e){return e;});
+		var new_mlacategory = jQuery.grep(new_mlacategory, function(e){return e;});
+		var new_mlatags = jQuery.grep(new_mlatags, function(e){return e;});
 
 		jQuery("#mediafromftp-loading-container").empty();
 		jQuery("#screen-options-wrap").remove();
@@ -90,7 +148,11 @@ jQuery(function(){
 							'nonce': MEDIAFROMFTPUPDATE.nonce,
 							'maxcount': new_url.length,
 							'new_url': new_url[j],
-							'new_datetime': new_datetime[j]
+							'new_datetime': new_datetime[j],
+							'new_mlccategory': new_mlccategory[j],
+							'new_emlcategory': new_emlcategory[j],
+							'new_mlacategory': new_mlacategory[j],
+							'new_mlatags': new_mlatags[j]
 						}
 					}).then(
 						function(result){

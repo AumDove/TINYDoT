@@ -21,6 +21,31 @@
 
 class MediaFromFtp {
 
+	private $is_add_on_activate;
+
+	/* ==================================================
+	 * Construct
+	 * @since	9.81
+	 */
+	function __construct() {
+
+		$exif_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_exif_load_textdomain') ){
+			$exif_active = TRUE;
+		}
+
+		$cli_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_cli_load_textdomain') ){
+			$cli_active = TRUE;
+		}
+
+		$this->is_add_on_activate = array(
+			'exif'	=>	$exif_active,
+			'cli'	=>	$cli_active
+			);
+
+	}
+
 	/* ==================================================
 	 * @param	string	$dir
 	 * @param	string	$extpattern
@@ -30,8 +55,11 @@ class MediaFromFtp {
 	 */
 	function scan_file($dir, $extpattern, $mediafromftp_settings) {
 
-		// for mediafromftpcmd.php
-		$cmdoptions = getopt("s:d:e:t:x:p:f:c:hgm");
+		// for media-from-ftp-add-on-wpcron and mediafromftpcmd.php
+		$cmdoptions = array();
+		if ( $this->is_add_on_activate['cli'] ) {
+			$cmdoptions = getopt("s:d:a:e:t:x:p:f:c:i:b:r:y:hgm");
+		}
 
 		if ( isset($cmdoptions['f']) ) {
 			$search_limit_number = $cmdoptions['f'];
@@ -388,7 +416,7 @@ class MediaFromFtp {
 	 * @param	string	$new_url
 	 * @param	string	$postcount
 	 * @param	array	$mediafromftp_settings
-	 * @return	string	$input_html
+	 * @return	array	$input_html(string), $date_time_html(string)
 	 * @since	9.30
 	 */
 	function input_html($ext, $file, $new_url, $postcount, $mediafromftp_settings){
@@ -430,17 +458,17 @@ class MediaFromFtp {
 				$input_html .= '<div>'.__('Length:').' '.$length.'</div>';
 			}
 		}
+		$input_html .= '</div>';
 
+		$date_time_html = NULL;
 		$date = $this->get_date_check($file, $mediafromftp_settings['dateset']);
-		if ( $mediafromftp_settings['dateset'] === 'new' ) {
-			$input_html .= '<input type="hidden" id="datetimepicker-mediafromftp'.$postcount.'" name="new_url_attaches['.$postcount.'][datetime]" value="'.$date.'" form="mediafromftp_ajax_update" >';
+		if ( $mediafromftp_settings['dateset'] === 'new' || $mediafromftp_settings['dateset'] === 'fixed' ) {
+			$input_html .= '<input type="hidden" name="new_url_attaches['.$postcount.'][datetime]" value="'.$date.'" form="mediafromftp_ajax_update" >';
 		} else {
-			$input_html .= '<div style="float: left; margin: 5px 5px 0px 0px;">'.__('Edit date and time').'</div>';
-			$input_html .= '<input type="text" id="datetimepicker-mediafromftp'.$postcount.'" name="new_url_attaches['.$postcount.'][datetime]" value="'.$date.'" form="mediafromftp_ajax_update" style="width: 160px;">';
+			$date_time_html .= '<input type="text" id="datetimepicker-mediafromftp'.$postcount.'" name="new_url_attaches['.$postcount.'][datetime]" value="'.$date.'" form="mediafromftp_ajax_update" style="width: 160px;">';
 		}
-		$input_html .= '</div></div>';
 
-		return $input_html;
+		return array($input_html, $date_time_html);
 
 	}
 
@@ -543,13 +571,14 @@ class MediaFromFtp {
 	 * @param	string	$new_url_attach
 	 * @param	string	$new_url_datetime
 	 * @param	string	$dateset
+	 * @param	string	$datefixed
 	 * @param	bool	$yearmonth_folders
 	 * @param	string	$character_code
 	 * @param	string	$cron_user
 	 * @return	array	$attach_id(int), $new_attach_title(string), $new_url_attach(string), $metadata(array)
 	 * @since	2.36
 	 */
-	function regist($ext, $new_url_attach, $new_url_datetime, $dateset, $yearmonth_folders, $character_code, $cron_user){
+	function regist($ext, $new_url_attach, $new_url_datetime, $dateset, $datefixed, $yearmonth_folders, $character_code, $cron_user){
 
 		// Rename and Move file
 		$suffix_attach_file = '.'.$ext;
@@ -691,6 +720,9 @@ class MediaFromFtp {
 
 		// Date Time Regist
 		if ( $dateset <> 'new' ) {
+			if ( $dateset === 'fixed' ) {
+				$postdategmt = get_gmt_from_date($datefixed.':00');
+			}
 			$postdate = get_date_from_gmt($postdategmt);
 			$up_post = array(
 							'ID' => $attach_id,
@@ -772,9 +804,14 @@ class MediaFromFtp {
 			$file_size = @filesize( $this->mb_encode_multibyte(get_attached_file($attach_id), $character_code) );
 		}
 
-		if ( $filetype['type'] === 'image/jpeg' || $filetype['type'] === 'image/tiff' ) {
-			if ( !empty($exif_text_tag) ) {
-				$exif_text = $this->exifcaption($attach_id, $metadata, $exif_text_tag);
+		if ( $this->is_add_on_activate['exif'] ) {
+			if ( $filetype['type'] === 'image/jpeg' || $filetype['type'] === 'image/tiff' ) {
+				if ( !empty($exif_text_tag) ) {
+					include_once MEDIAFROMFTP_ADDON_EXIF_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnExif.php';
+					$mediafromftpaddonexif = new MediaFromFtpAddOnExif();
+					$exif_text = $mediafromftpaddonexif->exifcaption($attach_id, $metadata, $exif_text_tag);
+					unset($mediafromftpaddonexif);
+				}
 			}
 		}
 
@@ -796,10 +833,11 @@ class MediaFromFtp {
 	 * @param	string	$exif_text
 	 * @param	array	$image_attr_thumbnail
 	 * @param	array	$mediafromftp_settings
+	 * @param	string	$cat_html
 	 * @return	string	$output_html
 	 * @since	9.30
 	 */
-	function output_html_and_log($ext, $attach_id, $new_attach_title, $new_url_attach, $imagethumburls, $mimetype, $length, $stamptime, $file_size, $exif_text, $image_attr_thumbnail, $mediafromftp_settings){
+	function output_html_and_log($ext, $attach_id, $new_attach_title, $new_url_attach, $imagethumburls, $mimetype, $length, $stamptime, $file_size, $exif_text, $image_attr_thumbnail, $mediafromftp_settings, $cat_html, $mlccategory, $emlcategory, $mlacategory, $mlatag){
 
 		$thumbnails = array();
 
@@ -838,6 +876,9 @@ class MediaFromFtp {
 				$output_html .= '<div>'.__('Length:').' '.$length.'</div>';
 			}
 		}
+		if ( !empty($cat_html) ) {
+			$output_html .= $cat_html;
+		}
 		$output_html .= '</div></div>';
 
 		if ( $mediafromftp_settings['log'] ) {
@@ -858,7 +899,11 @@ class MediaFromFtp {
 				'filesize' => $file_size,
 				'exif' => $exif_text,
 				'length' => $length,
-				'thumbnail' => $thumbnail
+				'thumbnail' => $thumbnail,
+				'mlccategories' => $mlccategory,
+				'emlcategories' => $emlcategory,
+				'mlacategories' => $mlacategory,
+				'mlatags' => $mlatag
 				);
 			$table_name = $wpdb->prefix.'mediafromftp_log';
 			$wpdb->insert( $table_name, $log_arr);
@@ -999,82 +1044,6 @@ class MediaFromFtp {
 
 		asort($extensions);
 		return $extensions;
-
-	}
-
-	/* ==================================================
-	 * @param	int		$attach_id
-	 * @param	array	$metadata
-	 * @param	string	$exif_text_tag
-	 * @return	string	$exif_text
-	 * @since	8.9
-	 */
-	function exifcaption($attach_id, $metadata, $exif_text_tag){
-
-		$exifdatas = array();
-		if ( $metadata['image_meta']['title'] ) {
-			$exifdatas['title'] = $metadata['image_meta']['title'];
-		}
-		if ( $metadata['image_meta']['credit'] ) {
-			$exifdatas['credit'] = $metadata['image_meta']['credit'];
-		}
-		if ( $metadata['image_meta']['camera'] ) {
-			$exifdatas['camera'] = $metadata['image_meta']['camera'];
-		}
-		if ( $metadata['image_meta']['caption'] ) {
-			$exifdatas['caption'] = $metadata['image_meta']['caption'];
-		}
-		$exif_ux_time = $metadata['image_meta']['created_timestamp'];
-		if ( !empty($exif_ux_time) ) {
-			$exifdatas['created_timestamp'] = date_i18n( "Y-m-d H:i:s", $exif_ux_time, FALSE );
-		}
-		if ( $metadata['image_meta']['copyright'] ) {
-			$exifdatas['copyright'] = $metadata['image_meta']['copyright'];
-		}
-		if ( $metadata['image_meta']['aperture'] ) {
-			$exifdatas['aperture'] = 'f/'.$metadata['image_meta']['aperture'];
-		}
-		if ( $metadata['image_meta']['shutter_speed'] ) {
-			if ( $metadata['image_meta']['shutter_speed'] < 1 ) {
-				$shutter = round( 1 / $metadata['image_meta']['shutter_speed'] );
-				$exifdatas['shutter_speed'] = '1/'.$shutter.'sec';
-			} else {
-				$exifdatas['shutter_speed'] = $metadata['image_meta']['shutter_speed'].'sec';
-			}
-		}
-		if ( $metadata['image_meta']['iso'] ) {
-			$exifdatas['iso'] = 'ISO-'.$metadata['image_meta']['iso'];
-		}
-		if ( $metadata['image_meta']['focal_length'] ) {
-			$exifdatas['focal_length'] = $metadata['image_meta']['focal_length'].'mm';
-		}
-
-		$exif_text = NULL;
-		if ( $exifdatas ) {
-			$exif_text = $exif_text_tag;
-			foreach($exifdatas as $item => $exif) {
-				$exif_text = str_replace('%'.$item.'%', $exif, $exif_text);
-			}
-			preg_match_all('/%(.*?)%/', $exif_text, $exif_text_per_match);
-			foreach($exif_text_per_match as $key1) {
-				foreach($key1 as $key2) {
-					$exif_text = str_replace('%'.$key2.'%', '', $exif_text);
-				}
-			}
-		}
-
-		if ( !empty($exif_text) ) {
-			// Change DB Attachement post
-			global $wpdb;
-			$update_array = array(
-							'post_excerpt'=> $exif_text
-						);
-			$id_array= array('ID'=> $attach_id);
-			$wpdb->update( $wpdb->posts, $update_array, $id_array, array('%s'), array('%d') );
-			unset($update_array, $id_array);
-		}
-
-		return $exif_text;
 
 	}
 
@@ -1359,7 +1328,7 @@ MEDIAFROMFTP_AUTHOR_SELECT;
 				$file_array[$count] = $file;
 
 				if ( array_key_exists( "postmeta_wp_attachment_metadata_value", $value ) ) {
-					$db_wp_attachment_metadata_array[$count] = $value['postmeta_wp_attachment_metadata_value'];
+					$db_wp_attachment_metadata_array[$count] = json_encode($value['postmeta_wp_attachment_metadata_value']);
 					if ( strrpos($value['postmeta_wp_attached_file_value'], '/') ) {
 						$monthdir = '/'.substr($value['postmeta_wp_attached_file_value'], 0 , strrpos($value['postmeta_wp_attached_file_value'], '/'));
 						$dir = MEDIAFROMFTP_PLUGIN_UPLOAD_DIR.$monthdir;

@@ -15,6 +15,7 @@ if ( !is_multisite() )
 		$log_name = $wpdb->prefix.'mediafromftp_log';
 		$wpdb->query("DROP TABLE IF EXISTS $log_name");
 	}
+
 } 
 // For Multisite
 else 

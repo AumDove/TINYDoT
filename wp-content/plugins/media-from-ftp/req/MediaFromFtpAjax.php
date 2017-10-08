@@ -21,6 +21,33 @@
 
 class MediaFromFtpAjax {
 
+	private $is_add_on_activate;
+
+	/* ==================================================
+	 * Construct
+	 * @since	9.81
+	 */
+	function __construct() {
+
+		$category_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_category_load_textdomain') ){
+			include_once MEDIAFROMFTP_ADDON_CATEGORY_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnCategory.php';
+			$category_active = TRUE;
+		}
+
+		$this->is_add_on_activate = array(
+			'category'	=>	$category_active
+			);
+
+		if(!class_exists('MediaFromFtpAdmin')){
+			require_once( MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpAdmin.php' );
+		}
+		if(!class_exists('MediaFromFtp')){
+			include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
+		}
+
+	}
+
 	/* ==================================================
 	 * Update Files Callback
 	 * 
@@ -34,18 +61,27 @@ class MediaFromFtpAjax {
 				$maxcount = intval($_POST["maxcount"]);
 				$new_url_attach = $_POST["new_url"];
 				$new_url_datetime = $_POST["new_datetime"];
+				$new_url_mlccategory = NULL;
+				$new_url_emlcategory = NULL;
+				$new_url_mlacategory = NULL;
+				$new_url_mlatags = NULL;
+				if ( $this->is_add_on_activate['category'] ) {
+					$new_url_mlccategory = $_POST["new_mlccategory"];
+					$new_url_emlcategory = $_POST["new_emlcategory"];
+					$new_url_mlacategory = $_POST["new_mlacategory"];
+					$new_url_mlatags = $_POST["new_mlatags"];
+				}
 
-				require_once( MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpAdmin.php' );
 				$mediafromftpadmin = new MediaFromFtpAdmin();
 				$mediafromftp_settings = get_option($mediafromftpadmin->wp_options_name());
 				unset($mediafromftpadmin);
 
 				if (!empty($new_url_attach)) {
 
-					include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
 					$mediafromftp = new MediaFromFtp();
 
 					$dateset = $mediafromftp_settings['dateset'];
+					$datefixed = $mediafromftp_settings['datefixed'];
 					$yearmonth_folders = get_option('uploads_use_yearmonth_folders');
 					$exif_text_tag = NULL;
 					if ( $mediafromftp_settings['caption']['apply'] ) {
@@ -59,13 +95,24 @@ class MediaFromFtpAjax {
 					$mediafromftp->delete_cash($ext, $new_url_attach);
 
 					// Regist
-					list($attach_id, $new_attach_title, $new_url_attach, $metadata) = $mediafromftp->regist($ext, $new_url_attach, $new_url_datetime, $dateset, $yearmonth_folders, $mediafromftp_settings['character_code'], $mediafromftp_settings['cron']['user']);
+					list($attach_id, $new_attach_title, $new_url_attach, $metadata) = $mediafromftp->regist($ext, $new_url_attach, $new_url_datetime, $dateset, $datefixed, $yearmonth_folders, $mediafromftp_settings['character_code'], $mediafromftp_settings['cron']['user']);
+
+					$cat_html = NULL;
+					$mlccategory = NULL;
+					$emlcategory = NULL;
+					$mlacategory = NULL;
+					$mlatag = NULL;
+					if ( $this->is_add_on_activate['category'] ) {
+						$mediafromftpaddoncategory = new MediaFromFtpAddOnCategory();
+						list($cat_html, $cat_text, $mlccategory, $emlcategory, $mlacategory, $mlatag) = $mediafromftpaddoncategory->regist_term($attach_id, $new_url_mlccategory, $new_url_emlcategory, $new_url_mlacategory, $new_url_mlatags);
+						unset($mediafromftpaddoncategory);
+					}
 
 					if ( $attach_id == -1 || $attach_id == -2 ) { // error
 						$error_title = $mediafromftp->mb_utf8($new_attach_title, $mediafromftp_settings['character_code']);
 						$error_url = $mediafromftp->mb_utf8($new_url_attach, $mediafromftp_settings['character_code']);
 						if ( $attach_id == -1 ) {
-							echo '<div class="notice notice-error is-dismissible"><ul><li>'.'<div>'.__('File name:').$error_title.'</div>'.'<div>'.__('Directory name:', 'media-from-ftp').$error_url.'</div>'.sprintf(__('<div>You need to make this directory writable before you can register this file. See <a href="%1$s" target="_blank">the Codex</a> for more information.</div><div>Or, filename or directoryname must be changed of illegal. Please change Character Encodings for Server of <a href="%2$s">Settings</a>.</div>', 'media-from-ftp'), 'http://codex.wordpress.org/Changing_File_Permissions', admin_url('admin.php?page=mediafromftp-settings')).'</li></div>';
+							echo '<div class="notice notice-error is-dismissible"><ul><li>'.'<div>'.__('File name:').$error_title.'</div>'.'<div>'.__('Directory name:', 'media-from-ftp').$error_url.'</div>'.sprintf(__('<div>You need to make this directory writable before you can register this file. See <a href="%1$s" target="_blank">the Codex</a> for more information.</div><div>Or, filename or directoryname must be changed of illegal. Please change Character Encodings for Server of <a href="%2$s">Settings</a>.</div>', 'media-from-ftp'), 'https://codex.wordpress.org/Changing_File_Permissions', admin_url('admin.php?page=mediafromftp-settings')).'</li></div>';
 						} else if ( $attach_id == -2 ) {
 							echo '<div class="notice notice-error is-dismissible"><ul><li><div>'.__('Title').': '.$error_title.'</div>'.'<div>URL: '.$error_url.'</div><div>'.__('This file could not be registered in the database.', 'media-from-ftp').'</div></li></ul></div>';
 						}
@@ -75,7 +122,7 @@ class MediaFromFtpAjax {
 
 						$image_attr_thumbnail = wp_get_attachment_image_src($attach_id, 'thumbnail', true);
 
-						$output_html = $mediafromftp->output_html_and_log($ext, $attach_id, $new_attach_title, $new_url_attach, $imagethumburls, $mimetype, $length, $stamptime, $file_size, $exif_text, $image_attr_thumbnail, $mediafromftp_settings);
+						$output_html = $mediafromftp->output_html_and_log($ext, $attach_id, $new_attach_title, $new_url_attach, $imagethumburls, $mimetype, $length, $stamptime, $file_size, $exif_text, $image_attr_thumbnail, $mediafromftp_settings, $cat_html, $mlccategory, $emlcategory, $mlacategory, $mlatag);
 
 						header('Content-type: text/html; charset=UTF-8');
 						echo $output_html;
@@ -140,8 +187,15 @@ class MediaFromFtpAjax {
 						$wpdb->insert( $table_name, $db_array );
 						update_attached_file( $db_array['ID'], $filepath ) ;
 						if ( !empty($_POST["db_wp_attachment_metadata"]) ) {
-							$metadata = maybe_unserialize(stripslashes($_POST["db_wp_attachment_metadata"]));
-							update_post_meta( $db_array['ID'], '_wp_attachment_metadata', $metadata );
+							$metadata_json = stripslashes($_POST["db_wp_attachment_metadata"]);
+							$metadata = json_decode($metadata_json);
+							$table_meta_name = $wpdb->prefix.'postmeta';
+							$db_meta_array = array(
+											"post_id"	=>	$db_array['ID'],
+											"meta_key"	=>	'_wp_attachment_metadata',
+											"meta_value"	=>	$metadata
+											);
+							$wpdb->insert( $table_meta_name, $db_meta_array );
 						}
 						if ( !empty($_POST["db_thumbnail_id"]) ) {
 							update_post_meta( $db_array['ID'], '_thumbnail_id', $_POST["db_thumbnail_id"] );

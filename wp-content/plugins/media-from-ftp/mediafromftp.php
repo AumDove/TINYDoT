@@ -2,10 +2,10 @@
 /*
 Plugin Name: Media from FTP
 Plugin URI: https://wordpress.org/plugins/media-from-ftp/
-Version: 9.61
+Version: 9.82
 Description: Register to media library from files that have been uploaded by FTP.
 Author: Katsushi Kawamori
-Author URI: http://riverforest-wp.info/
+Author URI: https://riverforest-wp.info/
 Text Domain: media-from-ftp
 Domain Path: /languages
 */
@@ -32,6 +32,22 @@ Domain Path: /languages
 	define("MEDIAFROMFTP_PLUGIN_BASE_DIR", dirname(__FILE__));
 	define("MEDIAFROMFTP_PLUGIN_URL", plugins_url($path='',$scheme=null).'/media-from-ftp');
 
+	if ( !defined('MEDIAFROMFTP_ADDON_CATEGORY_PLUGIN_BASE_DIR') ) {
+		define("MEDIAFROMFTP_ADDON_CATEGORY_PLUGIN_BASE_DIR", wp_normalize_path(WP_PLUGIN_DIR.'/media-from-ftp-add-on-category'));
+	}
+	if ( !defined('MEDIAFROMFTP_ADDON_CLI_PLUGIN_BASE_DIR') ) {
+		define("MEDIAFROMFTP_ADDON_CLI_PLUGIN_BASE_DIR", wp_normalize_path(WP_PLUGIN_DIR.'/media-from-ftp-add-on-cli'));
+	}
+	if ( !defined('MEDIAFROMFTP_ADDON_CLI_PLUGIN_URL') ) {
+		define("MEDIAFROMFTP_ADDON_CLI_PLUGIN_URL", plugins_url($path='',$scheme=null).'/media-from-ftp-add-on-cli');
+	}
+	if ( !defined('MEDIAFROMFTP_ADDON_EXIF_PLUGIN_BASE_DIR') ) {
+		define("MEDIAFROMFTP_ADDON_EXIF_PLUGIN_BASE_DIR", wp_normalize_path(WP_PLUGIN_DIR.'/media-from-ftp-add-on-exif'));
+	}
+	if ( !defined('MEDIAFROMFTP_ADDON_WPCRON_PLUGIN_BASE_DIR') ) {
+		define("MEDIAFROMFTP_ADDON_WPCRON_PLUGIN_BASE_DIR", wp_normalize_path(WP_PLUGIN_DIR.'/media-from-ftp-add-on-wpcron'));
+	}
+
 	include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
 	$mediafromftp = new MediaFromFtp();
 	define("MEDIAFROMFTP_PLUGIN_SITE_URL", $mediafromftp->siteurl());
@@ -43,6 +59,7 @@ Domain Path: /languages
 
 	define("MEDIAFROMFTP_PLUGIN_TMP_URL", MEDIAFROMFTP_PLUGIN_UPLOAD_URL.'/media-from-ftp-tmp');
 	define("MEDIAFROMFTP_PLUGIN_TMP_DIR", MEDIAFROMFTP_PLUGIN_UPLOAD_DIR.'/media-from-ftp-tmp');
+	define("MEDIAFROMFTP_PLUGIN_DISALLOW_TMP_DIR", '/'.MEDIAFROMFTP_PLUGIN_UPLOAD_PATH.'/media-from-ftp-tmp/');
 
 	// Make tmp dir
 	if ( !is_dir( MEDIAFROMFTP_PLUGIN_TMP_DIR ) ) {
@@ -53,7 +70,7 @@ Domain Path: /languages
 	$mediafromftpregist = new MediaFromFtpRegist();
 	register_activation_hook( __FILE__, array($mediafromftpregist, 'log_settings') );
 	add_action( 'plugins_loaded', array($mediafromftpregist, 'log_settings') );
-	add_action( 'admin_init', array($mediafromftpregist, 'register_settings'));
+	add_action( 'admin_init', array($mediafromftpregist, 'register_settings') );
 	unset($mediafromftpregist);
 
 	require_once( MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpAdmin.php' );
@@ -62,17 +79,12 @@ Domain Path: /languages
 	add_action( 'admin_menu', array($mediafromftpadmin, 'add_pages') );
 	add_action( 'admin_enqueue_scripts', array($mediafromftpadmin, 'load_custom_wp_admin_style') );
 	add_action( 'admin_footer', array($mediafromftpadmin, 'load_custom_wp_admin_style2') );
+	add_action( 'admin_footer', array($mediafromftpadmin, 'custom_bulk_admin_footer') );
 	add_action( 'screen_settings', array($mediafromftpadmin, 'search_register_show_screen_options'), 10, 2 );
 	add_filter( 'set-screen-option', array($mediafromftpadmin, 'search_register_set_screen_options'), 11, 3 );
 	add_filter( 'contextual_help', array($mediafromftpadmin, 'search_register_help_tab'), 12, 3);
+	add_filter( 'robots_txt', array($mediafromftpadmin, 'custom_robots_txt') );
 	unset($mediafromftpadmin);
-
-	require_once( MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpCron.php' );
-	$mediafromftpcron = new MediaFromFtpCron();
-	add_action( 'MediaFromFtpCronHook', array($mediafromftpcron, 'CronDo') );
-	register_activation_hook( __FILE__, array($mediafromftpcron, 'CronAllStart') );
-	register_deactivation_hook( __FILE__, array($mediafromftpcron, 'CronAllStop') );
-	unset($mediafromftpcron);
 
 	require_once( MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpAjax.php' );
 	$mediafromftpajax = new MediaFromFtpAjax();

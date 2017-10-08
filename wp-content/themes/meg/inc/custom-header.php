@@ -30,7 +30,7 @@ function meg_custom_header_setup() {
 	) );
         
 	add_theme_support( 'custom-header', apply_filters( 'meg_custom_header_args', array(
-		'default-image'          => 'url(/img/meg-lav-maui.jpg)',
+		'default-image'          => 'url(/img/desk-front-page.jpg)',
                 'default-backgroun-color' => 'e8fbfd',
 		'default-text-color'     => '18AEBC',
 		'width'                  => 1600,

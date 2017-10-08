@@ -22,12 +22,71 @@
 */
 
 if(!class_exists('WP_List_Table')){
+	require_once( ABSPATH . 'wp-admin/includes/class-wp-screen.php' );
+	require_once( ABSPATH . 'wp-admin/includes/screen.php' );
 	require_once( ABSPATH . 'wp-admin/includes/class-wp-list-table.php' );
+	require_once( ABSPATH . 'wp-admin/includes/template.php' );
 }
 
 class TT_MediaFromFtp_List_Table extends WP_List_Table {
 
 	public $max_items;
+	private $is_add_on_activate;
+
+	function __construct(){
+
+		$category_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_category_load_textdomain') ){
+			include_once MEDIAFROMFTP_ADDON_CATEGORY_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnCategory.php';
+			$category_active = TRUE;
+		}
+		if( function_exists('media_from_ftp_add_on_exif_load_textdomain') ){
+			include_once MEDIAFROMFTP_ADDON_EXIF_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnExif.php';
+		}
+		if( function_exists('media_from_ftp_add_on_cli_load_textdomain') ){
+			require_once( MEDIAFROMFTP_ADDON_CLI_PLUGIN_BASE_DIR.'/req/MediaFromFtpCli.php' );
+		}
+		if( function_exists('media_from_ftp_add_on_wpcron_load_textdomain') ){
+			include_once MEDIAFROMFTP_ADDON_WPCRON_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnWpcron.php';
+		}
+
+		if(!class_exists('MediaFromFtp')){
+			include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
+		}
+
+		// Media Library Categories
+		$mlc_active = FALSE;
+		if ( function_exists( 'wpmediacategory_init' ) ) {
+			$mlc_active = TRUE;
+		}
+
+		// Enhanced Media Library
+		$eml_active = FALSE;
+		if ( function_exists( 'wpuxss_eml_on_plugins_loaded' ) ) {
+			$eml_active = TRUE;
+		}
+
+		// Media Library Assistant
+		$mla_active = FALSE;
+		if ( function_exists( 'mla_name_conflict_reporting_action' ) ) {
+			$mla_active = TRUE;
+		}
+
+		$this->is_add_on_activate = array(
+			'category'	=>	$category_active,
+			'mlc'		=>	$mlc_active,
+			'eml'		=>	$eml_active,
+			'mla'		=>	$mla_active
+			);
+
+		global $status, $page;
+		//Set parent defaults
+		parent::__construct( array(
+			'singular'  => 'new_url_attaches',
+			'ajax'      => false
+		) );
+
+	}
 
 	/* ==================================================
 	 * @return	array	$listtable_array
@@ -35,7 +94,6 @@ class TT_MediaFromFtp_List_Table extends WP_List_Table {
 	 */
 	function read_data(){
 
-		include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
 		$mediafromftp = new MediaFromFtp();
 		$mediafromftp_settings = get_option($this->wp_options_name());
 		$pagemax = $mediafromftp_settings['pagemax'];
@@ -43,6 +101,12 @@ class TT_MediaFromFtp_List_Table extends WP_List_Table {
 		$ext2typefilter = $mediafromftp_settings['ext2typefilter'];
 		$extfilter = $mediafromftp_settings['extfilter'];
 		$max_execution_time = $mediafromftp_settings['max_execution_time'];
+
+		$mlccs = explode(',', $mediafromftp_settings['mlcc']);
+		$emlcs = explode(',', $mediafromftp_settings['emlc']);
+		$mlacs = explode(',', $mediafromftp_settings['mlac']);
+		$mlats = explode(',', $mediafromftp_settings['mlat']);
+
 		$document_root = ABSPATH.$searchdir;
 
 		$mediafromftp->mb_initialize($mediafromftp_settings['character_code']);
@@ -69,11 +133,28 @@ class TT_MediaFromFtp_List_Table extends WP_List_Table {
 			list($new_file, $ext, $new_url) = $mediafromftp->input_url($file, $attachments, $mediafromftp_settings['character_code'], $mediafromftp_settings['thumb_deep_search']);
 			if ( $new_file ) {
 				++$count;
-				$inputhtml = $mediafromftp->input_html($ext, $file, $new_url, $count, $mediafromftp_settings);
+				list($inputhtml, $datetimehtml) = $mediafromftp->input_html($ext, $file, $new_url, $count, $mediafromftp_settings);
+
+				$mlccategoryhtml = NULL;
+				$emlcategoryhtml = NULL;
+				$mlacategoryhtml = NULL;
+				if ( $this->is_add_on_activate['category'] ) {
+					include_once MEDIAFROMFTP_ADDON_CATEGORY_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnCategory.php';
+					$mediafromftpaddoncategory = new MediaFromFtpAddOnCategory();
+					$mlccategoryhtml = $mediafromftpaddoncategory->mlc_category_check_html($count, $mlccs);
+					$emlcategoryhtml = $mediafromftpaddoncategory->eml_category_check_html($count, $emlcs);
+					$mlacategoryhtml = $mediafromftpaddoncategory->mla_category_check_html($count, $mlacs, $mlats);
+					unset($mediafromftpaddoncategory);
+				}
+
 				$listtable_array[] = array(
-	                	'ID'        => $count,
-		                'title'     => $inputhtml,
-						'new_url'	=> $new_url
+	                	'ID'        	=> $count,
+		                'title'     	=> $inputhtml,
+						'new_url'		=> $new_url,
+						'datetime'		=> $datetimehtml,
+						'mlccategories'	=> $mlccategoryhtml,
+						'emlcategories'	=> $emlcategoryhtml,
+						'mlacategories'	=> $mlacategoryhtml
 				);
 
 			}
@@ -101,14 +182,17 @@ class TT_MediaFromFtp_List_Table extends WP_List_Table {
 
 	}
 
-	function __construct(){
-		global $status, $page;
-		//Set parent defaults
-		parent::__construct( array(
-			'singular'  => 'new_url_attaches',
-			'ajax'      => false
-		) );
-	}
+    function column_default($item, $column_name){
+        switch($column_name){
+            case 'datetime':
+            case 'mlccategories':
+            case 'emlcategories':
+            case 'mlacategories':
+                return $item[$column_name];
+            default:
+                return print_r($item,true); //Show the whole array for troubleshooting purposes
+        }
+    }
 
 	function column_title($item){
 		//Return the title contents
@@ -128,9 +212,26 @@ class TT_MediaFromFtp_List_Table extends WP_List_Table {
 
 	function get_columns(){
 		$columns = array(
-			'cb'        => '<input type="checkbox" />', //Render a checkbox instead of text
-			'title'     => 'URL'
+			'cb'			=>	'<input type="checkbox" />', //Render a checkbox instead of text
+			'title'			=>	'URL',
+			'datetime'		=>	__('Edit date and time'),
+			'mlccategories'	=>	'<div>'.__('Categories').'<div></div>'.'Media Library Categories'.'</div>',
+			'emlcategories'	=>	'<div>'.__('Categories').'<div></div>'.'Enhanced Media Library'.'</div>',
+			'mlacategories'	=>	'<div>'.__('Categories').' & '.__('Tags').'<div></div>'.'Media Library Assistant'.'</div>'
 		);
+		$mediafromftp_settings = get_option($this->wp_options_name());
+		if ( $mediafromftp_settings['dateset'] === 'new' || $mediafromftp_settings['dateset'] === 'fixed' ) unset($columns['datetime']);
+
+		if ( $this->is_add_on_activate['category'] ) {
+			if ( !$this->is_add_on_activate['mlc'] ) unset($columns['mlccategories']);
+			if ( !$this->is_add_on_activate['eml'] ) unset($columns['emlcategories']);
+			if ( !$this->is_add_on_activate['mla'] ) unset($columns['mlacategories']);
+		} else {
+			unset($columns['mlccategories']);
+			unset($columns['emlcategories']);
+			unset($columns['mlacategories']);
+		}
+
 		return $columns;
 	}
 

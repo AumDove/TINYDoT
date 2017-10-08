@@ -27,7 +27,7 @@ class MediaFromFtpRegist {
 	 */
 	function log_settings(){
 
-	    $mediafromftp_log_db_version = '2.0';
+	    $mediafromftp_log_db_version = '3.0';
 		$installed_ver = get_option( 'mediafromftp_log_version' );
 
 		if( $installed_ver != $mediafromftp_log_db_version ) {
@@ -36,10 +36,15 @@ class MediaFromFtpRegist {
 			require_once(ABSPATH . 'wp-admin/includes/upgrade.php');
 
 			$records = $wpdb->get_results("SELECT * FROM $log_name");
-			if ( $records ) { // db_version 1.0
+			if ( $records ) { // db_version 1.0, 2.0
 				$wpdb->query("DELETE FROM $log_name");
+
 				$wpdb->query("ALTER TABLE $log_name DROP thumbnail1, DROP thumbnail2, DROP thumbnail3, DROP thumbnail4, DROP thumbnail5, DROP thumbnail6");
 				$wpdb->query("ALTER TABLE $log_name ADD thumbnail longtext");
+				$wpdb->query("ALTER TABLE $log_name ADD mlccategories longtext");
+				$wpdb->query("ALTER TABLE $log_name ADD emlcategories longtext");
+				$wpdb->query("ALTER TABLE $log_name ADD mlacategories longtext");
+				$wpdb->query("ALTER TABLE $log_name ADD mlatags longtext");
 
 				foreach ( $records as $record ) {
 					$thumbnail = NULL;
@@ -53,6 +58,8 @@ class MediaFromFtpRegist {
 					if ( !empty($thumbnails) ) {
 						$thumbnail = json_encode($thumbnails);
 						$thumbnail = str_replace('\\', '', $thumbnail);
+					} else {
+						$thumbnail = $record->thumbnail;
 					}
 
 					$log_arr = array(
@@ -67,7 +74,11 @@ class MediaFromFtpRegist {
 						'filesize' => $record->filesize,
 						'exif' => $record->exif,
 						'length' => $record->length,
-						'thumbnail' => $thumbnail
+						'thumbnail' => $thumbnail,
+						'mlccategories' => NULL,
+						'emlcategories' => NULL,
+						'mlacategories' => NULL,
+						'mlatags' => NULL
 						);
 					$wpdb->insert( $log_name, $log_arr);
 					$wpdb->show_errors();
@@ -88,6 +99,10 @@ class MediaFromFtpRegist {
 				exif text,
 				length text,
 				thumbnail longtext,
+				mlccategories longtext,
+				emlcategories longtext,
+				mlacategories longtext,
+				mlatags longtext,
 				UNIQUE KEY meta_id (meta_id)
 				)
 				CHARACTER SET 'utf8';";
@@ -109,6 +124,7 @@ class MediaFromFtpRegist {
 		$cron_user = $user->ID;
 
 		$wp_options_name = 'mediafromftp_settings'.'_'.$cron_user;
+		$wp_cron_events_name = 'mediafromftp_add_on_wpcron_events'.'_'.$cron_user;
 
 		$pagemax = 20;
 		$basedir = MEDIAFROMFTP_PLUGIN_UPLOAD_PATH;
@@ -117,6 +133,8 @@ class MediaFromFtpRegist {
 		$extfilter = 'all';
 		$search_display_metadata = TRUE;
 		$dateset = 'new';
+		$datefixed = date_i18n("Y-m-d H:i");
+		$datetimepicker = 1;
 		$max_execution_time = 300;
 		if( strtoupper(substr(PHP_OS, 0, 3)) === 'WIN' && get_locale() === 'ja' ) { // Japanese Windows
 			$character_code = 'CP932';
@@ -134,6 +152,20 @@ class MediaFromFtpRegist {
 		$caption_apply = FALSE;
 		$exif_text = '%title% %credit% %camera% %caption% %created_timestamp% %copyright% %aperture% %shutter_speed% %iso% %focal_length%';
 		$log = FALSE;
+
+		// for media-from-ftp-add-on-category
+		$mlcc = NULL;
+		$emlc = NULL;
+		$mlac = NULL;
+		$mlat = NULL;
+
+		// for media-from-ftp-add-on-wpcron
+		if ( !get_option( 'mediafromftp_event_intervals' ) ) {
+			update_option( 'mediafromftp_event_intervals', array() );
+		}
+		if ( !get_option( $wp_cron_events_name ) ) {
+			update_option( $wp_cron_events_name, array() );
+		}
 
 		// << version 2.35
 		if ( get_option('mediafromftp_exclude_file') ) {
@@ -164,6 +196,12 @@ class MediaFromFtpRegist {
 				}
 				if ( array_key_exists( "dateset", $mediafromftp_settings ) ) {
 					$dateset = $mediafromftp_settings['dateset'];
+				}
+				if ( array_key_exists( "datefixed", $mediafromftp_settings ) ) {
+					$datefixed = $mediafromftp_settings['datefixed'];
+				}
+				if ( array_key_exists( "datetimepicker", $mediafromftp_settings ) ) {
+					$datetimepicker = $mediafromftp_settings['datetimepicker'];
 				}
 				if ( array_key_exists( "max_execution_time", $mediafromftp_settings ) ) {
 					$max_execution_time = $mediafromftp_settings['max_execution_time'];
@@ -201,6 +239,21 @@ class MediaFromFtpRegist {
 				if ( array_key_exists( "log", $mediafromftp_settings ) ) {
 					$log = $mediafromftp_settings['log'];
 				}
+
+				// for media-from-ftp-add-on-category
+				if ( array_key_exists( "mlcc", $mediafromftp_settings ) ) {
+					$mlcc = $mediafromftp_settings['mlcc'];
+				}
+				if ( array_key_exists( "emlc", $mediafromftp_settings ) ) {
+					$emlc = $mediafromftp_settings['emlc'];
+				}
+				if ( array_key_exists( "mlac", $mediafromftp_settings ) ) {
+					$mlac = $mediafromftp_settings['mlac'];
+				}
+				if ( array_key_exists( "mlat", $mediafromftp_settings ) ) {
+					$mlat = $mediafromftp_settings['mlat'];
+				}
+
 				delete_option( 'mediafromftp_settings' );
 			}
 		} else {
@@ -225,6 +278,12 @@ class MediaFromFtpRegist {
 			}
 			if ( array_key_exists( "dateset", $mediafromftp_settings ) ) {
 				$dateset = $mediafromftp_settings['dateset'];
+			}
+			if ( array_key_exists( "datefixed", $mediafromftp_settings ) ) {
+				$datefixed = $mediafromftp_settings['datefixed'];
+			}
+			if ( array_key_exists( "datetimepicker", $mediafromftp_settings ) ) {
+				$datetimepicker = $mediafromftp_settings['datetimepicker'];
 			}
 			if ( array_key_exists( "max_execution_time", $mediafromftp_settings ) ) {
 				$max_execution_time = $mediafromftp_settings['max_execution_time'];
@@ -262,6 +321,19 @@ class MediaFromFtpRegist {
 			if ( array_key_exists( "log", $mediafromftp_settings ) ) {
 				$log = $mediafromftp_settings['log'];
 			}
+			// for media-from-ftp-add-on-category
+			if ( array_key_exists( "mlcc", $mediafromftp_settings ) ) {
+				$mlcc = $mediafromftp_settings['mlcc'];
+			}
+			if ( array_key_exists( "emlc", $mediafromftp_settings ) ) {
+				$emlc = $mediafromftp_settings['emlc'];
+			}
+			if ( array_key_exists( "mlac", $mediafromftp_settings ) ) {
+				$mlac = $mediafromftp_settings['mlac'];
+			}
+			if ( array_key_exists( "mlat", $mediafromftp_settings ) ) {
+				$mlat = $mediafromftp_settings['mlat'];
+			}
 		}
 
 		$mediafromftp_tbl = array(
@@ -272,6 +344,8 @@ class MediaFromFtpRegist {
 							'extfilter' => $extfilter,
 							'search_display_metadata' => $search_display_metadata,
 							'dateset' => $dateset,
+							'datefixed' => $datefixed,
+							'datetimepicker' => $datetimepicker,
 							'max_execution_time' => $max_execution_time,
 							'character_code' => $character_code,
 							'exclude' => $exclude,
@@ -289,7 +363,11 @@ class MediaFromFtpRegist {
 											'apply' => $caption_apply,
 											'exif_text' => $exif_text
 										),
-							'log' => $log
+							'log' => $log,
+							'mlcc' => $mlcc,
+							'emlc' => $emlc,
+							'mlac' => $mlac,
+							'mlat' => $mlat
 						);
 		update_option( $wp_options_name, $mediafromftp_tbl );
 

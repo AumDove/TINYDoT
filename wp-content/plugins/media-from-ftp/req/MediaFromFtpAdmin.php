@@ -21,6 +21,51 @@
 
 class MediaFromFtpAdmin {
 
+	private $is_add_on_activate;
+
+	/* ==================================================
+	 * Construct
+	 * @since	9.81
+	 */
+	function __construct() {
+
+		$category_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_category_load_textdomain') ){
+			include_once MEDIAFROMFTP_ADDON_CATEGORY_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnCategory.php';
+			$category_active = TRUE;
+		}
+		$exif_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_exif_load_textdomain') ){
+			include_once MEDIAFROMFTP_ADDON_EXIF_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnExif.php';
+			$exif_active = TRUE;
+		}
+		$cli_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_cli_load_textdomain') ){
+			require_once( MEDIAFROMFTP_ADDON_CLI_PLUGIN_BASE_DIR.'/req/MediaFromFtpCli.php' );
+			$cli_active = TRUE;
+		}
+		$wpcron_active = FALSE;
+		if( function_exists('media_from_ftp_add_on_wpcron_load_textdomain') ){
+			include_once MEDIAFROMFTP_ADDON_WPCRON_PLUGIN_BASE_DIR.'/inc/MediaFromFtpAddOnWpcron.php';
+			$wpcron_active = TRUE;
+		}
+
+		$this->is_add_on_activate = array(
+			'category'	=>	$category_active,
+			'exif'		=>	$exif_active,
+			'cli'		=>	$cli_active,
+			'wpcron'	=>	$wpcron_active
+			);
+
+		if(!class_exists('MediaFromFtp')){
+			include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
+		}
+		if(!class_exists('TT_MediaFromFtp_List_Table')){
+			require_once( MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpListTable.php' );
+		}
+
+	}
+
 	/* ==================================================
 	 * Add a "Settings" link to the plugins page
 	 * @since	1.0
@@ -34,8 +79,15 @@ class MediaFromFtpAdmin {
 			$links[] = '<a href="'.admin_url('admin.php?page=mediafromftp').'">Media from FTP</a>';
 			$links[] = '<a href="'.admin_url('admin.php?page=mediafromftp-search-register').'">'.__('Search & Register', 'media-from-ftp').'</a>';
 			$links[] = '<a href="'.admin_url('admin.php?page=mediafromftp-settings').'">'.__( 'Settings').'</a>';
+			$mediafromftp = new MediaFromFtp();
+			if ( $this->is_add_on_activate['wpcron'] ) {
+				$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+				$links[] = $mediafromftpaddonwpcron->mediafromftp_settings_link_html();
+				unset($mediafromftpaddonwpcron);
+			}
 			$links[] = '<a href="'.admin_url('admin.php?page=mediafromftp-log').'">'.__('Log', 'media-from-ftp').'</a>';
 			$links[] = '<a href="'.admin_url('admin.php?page=mediafromftp-import').'">'.__('Import').'</a>';
+			$links[] = '<a href="'.admin_url('admin.php?page=mediafromftp-addons').'">'.__('Add-Ons', 'media-from-ftp').'</a>';
 		}
 			return $links;
 	}
@@ -69,6 +121,12 @@ class MediaFromFtpAdmin {
 				'mediafromftp-settings',
 				array($this, 'settings_page')
 		);
+		$mediafromftp = new MediaFromFtp();
+		if ( $this->is_add_on_activate['wpcron'] ) {
+			$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+			$mediafromftpaddonwpcron->mediafromftp_add_submenu();
+			unset($mediafromftpaddonwpcron);
+		}
 		add_submenu_page(
 				'mediafromftp',
 				__('Log', 'media-from-ftp'),
@@ -84,6 +142,14 @@ class MediaFromFtpAdmin {
 				'upload_files',
 				'mediafromftp-import',
 				array($this, 'medialibrary_import_page')
+		);
+		add_submenu_page(
+				'mediafromftp',
+				__('Add-Ons', 'media-from-ftp'),
+				__('Add-Ons', 'media-from-ftp'),
+				'upload_files',
+				'mediafromftp-addons',
+				array($this, 'addons_page')
 		);
 	}
 
@@ -102,6 +168,18 @@ class MediaFromFtpAdmin {
 				$return .= '<legend>'.__('Pagination').'</legend>';
 				$return .= '<label>'.__('Number of items per page:').'</label>';
 				$return .= '<input type="number" step="1" min="1" max="999" class="screen-per-page" name="mediafromftp_pagemax" maxlength="3" value="'.$mediafromftp_settings['pagemax'].'">';
+				$return .= '</div>';
+
+				$return .= '<div class="item-mediafromftp-settings">';
+				$return .= '<legend>'.__('Date and time input assistance', 'media-from-ftp').'</legend>';
+				$return .= '<div style="display: block;padding:5px 5px">';
+				if ($mediafromftp_settings['datetimepicker'] == TRUE) {
+					$return .= '<input type="checkbox" name="mediafromftp_datetimepicker" value="1" checked />';
+				} else {
+					$return .= '<input type="checkbox" name="mediafromftp_datetimepicker" value="1" />';
+				}
+				$return .= '<a href="https://xdsoft.net/jqplugins/datetimepicker/" target="_blank" style="text-decoration: none;">Date Time Picker</a>(jQuery '.__('Plugin').')';
+				$return .= '</div>';
 				$return .= '</div>';
 
 				$return .= '<div class="item-mediafromftp-settings">';
@@ -178,12 +256,13 @@ class MediaFromFtpAdmin {
 	 */
 	function search_register_help_tab($help, $screen_id, $screen) {
 
-		if( $screen_id === 'media-from-ftp_page_mediafromftp-search-register' || $screen_id === 'media-from-ftp_page_mediafromftp-settings' || $screen_id === 'media-from-ftp_page_mediafromftp-log' ||  $screen_id === 'media-from-ftp_page_mediafromftp-import' ) {
+		if( $screen_id === 'media-from-ftp_page_mediafromftp-search-register' || $screen_id === 'media-from-ftp_page_mediafromftp-settings' || $screen_id === 'media-from-ftp_page_mediafromftp-event' || $screen_id === 'media-from-ftp_page_mediafromftp-log' ||  $screen_id === 'media-from-ftp_page_mediafromftp-import' || $screen_id === 'media-from-ftp_page_mediafromftp-addons' ) {
 			$sidebar = '<p><strong>'.__('For more information:').'</strong></p>';
 			$sidebar .= '<p><a href="'.__('https://wordpress.org/plugins/media-from-ftp/faq', 'media-from-ftp').'" target="_blank">'.__('FAQ').'</a></p>';
 			$sidebar .= '<p><a href="https://wordpress.org/support/plugin/media-from-ftp" target="_blank">'.__('Support Forums').'</a></p>';
 			$sidebar .= '<p><a href="https://wordpress.org/support/view/plugin-reviews/media-from-ftp" target="_blank">'.__('Reviews', 'media-from-ftp').'</a></p>';
 			$sidebar .= '<p><a href="https://translate.wordpress.org/projects/wp-plugins/media-from-ftp" target="_blank">'.sprintf(__('Translations for %s'), 'Media from FTP').'</a></p>';
+			$sidebar .= '<p><a style="text-decoration: none;" href="https://www.facebook.com/katsushikawamori/" target="_blank"><span class="dashicons dashicons-facebook"></span></a> <a style="text-decoration: none;" href="https://twitter.com/dodesyo312" target="_blank"><span class="dashicons dashicons-twitter"></span></a></p>';
 			$sidebar .= '<p><a href="https://pledgie.com/campaigns/28307" target="_blank">'.__('Donate to this plugin &#187;').'</a></p>';
 
 			$tabs = $this->get_help_message($screen_id);
@@ -203,6 +282,7 @@ class MediaFromFtpAdmin {
 	function get_help_message($screen_id) {
 
 		$upload_dir_html = '<span style="color: red;">'.MEDIAFROMFTP_PLUGIN_UPLOAD_PATH.'</span>';
+		$mediafromftp = new MediaFromFtp();
 
 		switch ($screen_id) {
 			case "media-from-ftp_page_mediafromftp-search-register":
@@ -213,16 +293,28 @@ class MediaFromFtpAdmin {
 			case "media-from-ftp_page_mediafromftp-settings":
 				$outline = '<p>'.sprintf(__('"%1$s" sets options for %2$s registration.', 'media-from-ftp'), __('Register'), __('Media Library')).'</p>';
 				$outline .= '<p>'.sprintf(__('"%1$s" sets other options.', 'media-from-ftp'), __('Other', 'media-from-ftp')).'</p>';
-				$outline .= '<p>'.sprintf(__('"%1$s" shows how to use bundled %2$s.', 'media-from-ftp'), __('Command-line', 'media-from-ftp'), '<code>mediafromftpcmd.php</code>').'</p>';
+				if ( $this->is_add_on_activate['cli'] ) {
+					$mediafromftpcli = new MediaFromFtpCli();
+					$outline .= $mediafromftpcli->mediafromftp_settings_helptab_html();
+				}
+				break;
+			case "media-from-ftp_page_mediafromftp-event":
+				if ( $this->is_add_on_activate['wpcron'] ) {
+					$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+					$outline = $mediafromftpaddonwpcron->mediafromftp_event_helptab_html();
+				}
 				break;
 			case "media-from-ftp_page_mediafromftp-log":
 				$outline = '<p>'.__('Display history of registration.', 'media-from-ftp').'</p>';
 				$outline .= '<p>'.__('You can export to CSV format.', 'media-from-ftp').'</p>';
 				break;
 			case "media-from-ftp_page_mediafromftp-import":
-				$outline = '<p>'.__('This page does the independent processing from other pages in "Media from FTP".', 'media-from-ftp').'</p>';
-				$outline .= '<p>'.__('To Import the files to Media Library from a WordPress export file.', 'media-from-ftp').'</p>';
+				$outline = '<p>'.__('To Import the files to Media Library from a WordPress export file.', 'media-from-ftp').'</p>';
 				$outline .= '<p>'.sprintf(__('In uploads directory(%1$s), that you need to copy the file to the same state as the import source by FTP.', 'media-from-ftp'), $upload_dir_html).'</p>';
+				break;
+			case "media-from-ftp_page_mediafromftp-addons":
+				$outline = '<p>'.__('This page shows paid add-ons and their summaries.', 'media-from-ftp').'</p>';
+				$outline .= '<p>'.__('You can check whether it is installed or activated.', 'media-from-ftp').'</p>';
 				break;
 		}
 
@@ -243,13 +335,20 @@ class MediaFromFtpAdmin {
 	 */
 	function load_custom_wp_admin_style() {
 		if ($this->is_my_plugin_screen()) {
-			wp_enqueue_style( 'jquery-datetimepicker', MEDIAFROMFTP_PLUGIN_URL.'/css/jquery.datetimepicker.css' );
+			$mediafromftp_settings = get_option($this->wp_options_name());
+			if ( $mediafromftp_settings['datetimepicker'] ) {
+				wp_enqueue_style( 'jquery-datetimepicker', MEDIAFROMFTP_PLUGIN_URL.'/css/jquery.datetimepicker.css' );
+			}
 			wp_enqueue_style( 'jquery-responsiveTabs', MEDIAFROMFTP_PLUGIN_URL.'/css/responsive-tabs.css' );
 			wp_enqueue_style( 'jquery-responsiveTabs-style', MEDIAFROMFTP_PLUGIN_URL.'/css/style.css' );
 			wp_enqueue_style( 'mediafromftp',  MEDIAFROMFTP_PLUGIN_URL.'/css/mediafromftp.css' );
 			wp_enqueue_script( 'jquery' );
-			wp_enqueue_script( 'jquery-datetimepicker', MEDIAFROMFTP_PLUGIN_URL.'/js/jquery.datetimepicker.js', null, '2.3.4' );
+			if ( $mediafromftp_settings['datetimepicker'] ) {
+				wp_enqueue_script( 'jquery-datetimepicker', MEDIAFROMFTP_PLUGIN_URL.'/js/jquery.datetimepicker.js', null, '2.3.4' );
+				wp_enqueue_script( 'jquery-mediafromftp-datetimepicker', MEDIAFROMFTP_PLUGIN_URL.'/js/jquery.mediafromftp.datetimepicker.js', array('jquery') );
+			}
 			wp_enqueue_script( 'jquery-responsiveTabs', MEDIAFROMFTP_PLUGIN_URL.'/js/jquery.responsiveTabs.min.js' );
+
 			$handle = 'mediafromftp-ajax-script';
 			$action1 = 'mediafromftp-update-ajax-action';
 			$action2 = 'mediafromftp-import-ajax-action';
@@ -287,7 +386,6 @@ class MediaFromFtpAdmin {
 								}
 							}
 							$filename = $_POST['mediafromftp_xml_file'];
-							include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
 							$mediafromftp = new MediaFromFtp();
 							echo $mediafromftp->make_object($filename, $select_author);
 							unset($mediafromftp);
@@ -311,9 +409,13 @@ class MediaFromFtpAdmin {
 			return TRUE;
 		} else if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-search-register') {
 			return TRUE;
+		} else if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-event') {
+			return TRUE;
 		} else if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-log') {
 			return TRUE;
 		} else if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-import') {
+			return TRUE;
+		} else if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-addons') {
 			return TRUE;
 		} else {
 			return FALSE;
@@ -327,6 +429,21 @@ class MediaFromFtpAdmin {
 	function is_my_plugin_screen2() {
 		$screen = get_current_screen();
 		if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-import') {
+			return TRUE;
+		} else {
+			return FALSE;
+		}
+	}
+
+	/* ==================================================
+	 * For only admin style
+	 * @since	9.63
+	 */
+	function is_my_plugin_screen3() {
+		$screen = get_current_screen();
+		if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-search-register') {
+			return TRUE;
+		} else if (is_object($screen) && $screen->id == 'media-from-ftp_page_mediafromftp-settings') {
 			return TRUE;
 		} else {
 			return FALSE;
@@ -352,8 +469,16 @@ class MediaFromFtpAdmin {
 		<h2>Media from FTP
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>" class="page-title-action"><?php _e('Search & Register', 'media-from-ftp'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-settings'); ?>" class="page-title-action"><?php _e('Settings'); ?></a>
+			<?php
+			if ( $this->is_add_on_activate['wpcron'] ) {
+				$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+				$mediafromftpaddonwpcron->mediafromftp_event_link_html();
+				unset($mediafromftpaddonwpcron);
+			}
+			?>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-log'); ?>" class="page-title-action"><?php _e('Log', 'media-from-ftp'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-import'); ?>" class="page-title-action"><?php _e('Import'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-addons'); ?>" class="page-title-action"><?php _e('Add-Ons', 'media-from-ftp'); ?></a>
 		</h2>
 		<div style="clear: both;"></div>
 
@@ -365,7 +490,7 @@ class MediaFromFtpAdmin {
 		</div>
 		<div>
 		<a style="text-decoration: none;" href="https://wordpress.org/support/view/plugin-reviews/media-from-ftp" target="_blank"><?php _e('Reviews', 'media-from-ftp'); ?></a> | 
-		<a style="text-decoration: none;" href="https://translate.wordpress.org/projects/wp-plugins/media-from-ftp" target="_blank"><?php echo sprintf(__('Translations for %s'), 'Media from FTP'); ?></a>
+		<a style="text-decoration: none;" href="https://translate.wordpress.org/projects/wp-plugins/media-from-ftp" target="_blank"><?php echo sprintf(__('Translations for %s'), 'Media from FTP'); ?></a> | <a style="text-decoration: none;" href="https://www.facebook.com/katsushikawamori/" target="_blank"><span class="dashicons dashicons-facebook"></span></a> | <a style="text-decoration: none;" href="https://twitter.com/dodesyo312" target="_blank"><span class="dashicons dashicons-twitter"></span></a>
 		</div>
 		</span>
 
@@ -407,6 +532,45 @@ class MediaFromFtpAdmin {
 				$this->options_updated($submenu);
 			}
 		}
+		if ( isset($_POST['media_from_ftp_add_schedule']) && $_POST['media_from_ftp_add_schedule'] ) {
+			if ( check_admin_referer('mff_add_schedule', 'media_from_ftp_add_schedule') ) {
+				$submenu = 5;
+				$this->options_updated($submenu);
+			}
+		}
+		if ( isset($_POST['media_from_ftp_add_schedule_delete']) && $_POST['media_from_ftp_add_schedule_delete'] ) {
+			if ( check_admin_referer('mff_add_schedule_delete', 'media_from_ftp_add_schedule_delete') ) {
+				$submenu = 6;
+				$this->options_updated($submenu);
+			}
+		}
+		if ( isset($_POST['media_from_ftp_settings_cron_event_create']) && $_POST['media_from_ftp_settings_cron_event_create'] ) {
+			if ( check_admin_referer('mff_settings_cron_event_create', 'media_from_ftp_settings_cron_event_create') ) {
+				$submenu = 7;
+				$this->options_updated($submenu);
+			}
+		}
+
+		$mediafromftp = new MediaFromFtp();
+
+		$mediafromftp_addon_wpcron = FALSE;
+		if ( $this->is_add_on_activate['wpcron'] ) {
+			$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+			$mediafromftp_addon_wpcron = TRUE;
+		}
+
+		$mediafromftp_addon_category = FALSE;
+		if ( $this->is_add_on_activate['category'] ) {
+			$mediafromftpaddoncategory = new MediaFromFtpAddOnCategory();
+			$mediafromftp_addon_category = TRUE;
+		}
+
+		$mediafromftp_addon_exif = FALSE;
+		if ( $this->is_add_on_activate['exif'] ) {
+			$mediafromftpaddonexif = new MediaFromFtpAddOnExif();
+			$mediafromftp_addon_exif = TRUE;
+		}
+
 		$mediafromftp_settings = get_option($this->wp_options_name());
 
 		$def_max_execution_time = ini_get('max_execution_time');
@@ -418,8 +582,14 @@ class MediaFromFtpAdmin {
 
 		<h2>Media from FTP <a href="<?php echo admin_url('admin.php?page=mediafromftp-settings'); ?>" style="text-decoration: none;"><?php _e('Settings'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>" class="page-title-action"><?php _e('Search & Register', 'media-from-ftp'); ?></a>
+			<?php
+			if ($mediafromftp_addon_wpcron) {
+				$mediafromftpaddonwpcron->mediafromftp_event_link_html();
+			}
+			?>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-log'); ?>" class="page-title-action"><?php _e('Log', 'media-from-ftp'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-import'); ?>" class="page-title-action"><?php _e('Import'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-addons'); ?>" class="page-title-action"><?php _e('Add-Ons', 'media-from-ftp'); ?></a>
 		</h2>
 		<div style="clear: both;"></div>
 
@@ -427,7 +597,12 @@ class MediaFromFtpAdmin {
 			<ul>
 			<li><a href="#mediafromftp-settings-tabs-1"><?php _e('Register'); ?></a></li>
 			<li><a href="#mediafromftp-settings-tabs-2"><?php _e('Other', 'media-from-ftp'); ?></a></li>
-			<li><a href="#mediafromftp-settings-tabs-3"><?php _e('Command-line', 'media-from-ftp'); ?></a></li>
+			<?php 
+			if ( $this->is_add_on_activate['cli'] ) {
+				$mediafromftpcli = new MediaFromFtpCli();
+				$mediafromftpcli->mediafromftp_settings_tab_menu_html();
+			}
+			?>
 			</ul>
 
 			<div id="mediafromftp-settings-tabs-1">
@@ -450,6 +625,13 @@ class MediaFromFtpAdmin {
 					?>
 					</div>
 					<div style="display: block; padding:5px 5px">
+					<input type="radio" name="mediafromftp_dateset" form="mediafromftp_settings_form" value="fixed" <?php if ($mediafromftp_settings['dateset'] === 'fixed') echo 'checked'; ?>>
+					<?php _e('Update to use of fixed the date/time.', 'media-from-ftp'); ?>
+					</div>
+					<div style="display: block; padding:5px 40px">
+					<input type="text" id="datetimepicker-mediafromftp00" name="mediafromftp_datefixed" form="mediafromftp_settings_form" value="<?php echo $mediafromftp_settings['datefixed']; ?>">
+					</div>
+					<div style="display: block; padding:5px 5px">
 					<?php
 					if ( current_user_can('manage_options') ) {
 						?>
@@ -467,94 +649,6 @@ class MediaFromFtpAdmin {
 				</div>
 
 				<div class="item-mediafromftp-settings">
-					<h3>Exif <?php _e('Caption'); ?></h3>
-					<div style="display:block;padding:5px 0">
-					<?php _e('Register the Exif data to the caption.', 'media-from-ftp'); ?>
-					</div>
-					<div style="display:block;padding:5px 0">
-					<input type="checkbox" name="mediafromftp_caption_apply" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['caption']['apply']); ?> />
-					<?php _e('Apply'); ?>
-					</div>
-					<div style="display: block; padding:5px 20px;">
-						Exif <?php _e('Tags'); ?>
-						<?php submit_button( __('Default'), 'button', 'mediafromftp_exif_default', FALSE, array( 'style' => 'position:relative; top:-5px;', 'form' => 'mediafromftp_settings_form' ) ); ?>
-						<div style="display: block; padding:5px 20px;">
-						<textarea name="mediafromftp_exif_text" form="mediafromftp_settings_form" style="width: 100%;"><?php echo $mediafromftp_settings['caption']['exif_text']; ?></textarea>
-							<div>
-							<a href="https://codex.wordpress.org/Function_Reference/wp_read_image_metadata#Return%20Values" target="_blank" style="text-decoration: none; word-break: break-all;"><?php _e('For Exif tags, please read here.', 'media-from-ftp'); ?></a>
-							</div>
-						</div>
-					</div>
-					<div>
-					<?php
-						if ( is_multisite() ) {
-							$exifcaption_install_url = network_admin_url('plugin-install.php?tab=plugin-information&plugin=exif-caption');
-						} else {
-							$exifcaption_install_url = admin_url('plugin-install.php?tab=plugin-information&plugin=exif-caption');
-						}
-						$exifcaption_install_html = '<a href="'.$exifcaption_install_url.'" target="_blank" style="text-decoration: none; word-break: break-all;">Exif Caption</a>';
-						echo sprintf(__('If you want to insert the Exif in the media that have already been registered in the media library, Please use the %1$s.','media-from-ftp'), $exifcaption_install_html);
-					?>
-					</div>
-				</div>
-
-				<div class="item-mediafromftp-settings">
-					<h3><?php _e('Schedule', 'media-from-ftp'); ?></h3>
-					<div style="display:block;padding:5px 0">
-					<?php _e('Set the schedule.', 'media-from-ftp'); ?>
-					<?php _e('Will take some time until the [Next Schedule] is reflected.', 'media-from-ftp'); ?>
-					</div>
-					<div style="display:block;padding:5px 0">
-					<?php
-					$cron_args = array( 'wp_options_name' => $this->wp_options_name() );
-					if ( wp_next_scheduled( 'MediaFromFtpCronHook', $cron_args ) ) {
-						?>
-						<form method="post" action="<?php echo $scriptname; ?>" />
-						<?php wp_nonce_field('mff_run_cron', 'media_from_ftp_run_cron'); ?>
-						<input type="hidden" name="mediafromftp_run_cron" value="1" />
-						<?php echo __('Next Schedule:', 'media-from-ftp').' '.get_date_from_gmt(date("Y-m-d H:i:s", wp_next_scheduled( 'MediaFromFtpCronHook', $cron_args ))).' ';
-						submit_button( __('Execute now', 'media-from-ftp'), 'large', '', FALSE, array( 'style' => 'position:relative; top:-5px;' ) ); ?>
-						</form>
-						<?php
-					} else {
-						echo __('Next Schedule:', 'media-from-ftp').' '.__('None');
-					}
-					?>
-					</div>
-					<div style="display:block;padding:5px 0">
-					<input type="checkbox" name="mediafromftp_cron_apply" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['cron']['apply']); ?> />
-					<?php _e('Apply Schedule', 'media-from-ftp'); ?>
-					</div>
-					<div style="display:block;padding:5px 10px">
-					<input type="radio" name="mediafromftp_cron_schedule" form="mediafromftp_settings_form" value="hourly" <?php checked('hourly', $mediafromftp_settings['cron']['schedule']); ?>>
-					<?php _e('hourly', 'media-from-ftp'); ?>
-					</div>
-					<div style="display:block;padding:5px 10px">
-					<input type="radio" name="mediafromftp_cron_schedule" form="mediafromftp_settings_form" value="twicedaily" <?php checked('twicedaily', $mediafromftp_settings['cron']['schedule']); ?>>
-					<?php _e('twice daily', 'media-from-ftp'); ?>
-					</div>
-					<div style="display:block;padding:5px 10px">
-					<input type="radio" name="mediafromftp_cron_schedule" form="mediafromftp_settings_form" value="daily" <?php checked('daily', $mediafromftp_settings['cron']['schedule']); ?>>
-					<?php _e('daily', 'media-from-ftp'); ?>
-					</div>
-					<div style="display:block;padding:5px 10px">
-					<input type="checkbox" name="mediafromftp_cron_limit_number" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['cron']['limit_number']); ?> />
-					<?php _e('Apply limit number of update files.', 'media-from-ftp'); ?>
-					</div>
-					<div style="display:block;padding:5px 20px">
-						<?php echo __('Limit number of update files', 'media-from-ftp').': '.$mediafromftp_settings['pagemax']; ?>
-						= <a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>"><?php _e('Number of items per page:'); ?></a>
-					</div>
-					<div style="display:block;padding:5px 10px">
-					<input type="checkbox" name="mediafromftp_cron_mail_apply" form="mediafromftp_settings_form" value="1" <?php checked('1', $mediafromftp_settings['cron']['mail_apply']); ?> />
-					<?php _e('Email me whenever'); ?>
-					</div>
-					<div style="display:block;padding:5px 20px">
-						<?php echo __('Your Email').': '.$mediafromftp_settings['cron']['mail']; ?>
-					</div>
-				</div>
-
-				<div class="item-mediafromftp-settings">
 					<h3><?php _e('Log', 'media-from-ftp'); ?></h3>
 					<div style="display:block;padding:5px 0">
 					<?php _e('Record the registration result.', 'media-from-ftp'); ?>
@@ -565,14 +659,80 @@ class MediaFromFtpAdmin {
 					</div>
 				</div>
 
+				<div class="item-mediafromftp-settings">
+					<h3><?php _e('Schedule', 'media-from-ftp'); ?>(<?php _e('Cron Event', 'media-from-ftp'); ?>)</h3>
+					<div style="display:block;padding:5px 0">
+					<?php _e('Set the schedule.', 'media-from-ftp'); ?>
+					</div>
+					<?php
+					if ($mediafromftp_addon_wpcron) {
+						$mediafromftpaddonwpcron->mediafromftp_schedule_form($scriptname, $mediafromftp_settings);
+					} else {
+						$add_on_url = '<a href="'.admin_url('admin.php?page=mediafromftp-addons').'" style="text-decoration: none; word-break: break-all;"><strong>'.__('Add-Ons', 'media-from-ftp').'(Media from FTP Add On Wp Cron)</strong></a>';
+						$use_add_on_html = sprintf(__('This function requires %1$s.', 'media-from-ftp'), $add_on_url);
+						?>
+						<div style="display:block;padding:5px 0">
+						<?php echo $use_add_on_html; ?>
+						</div>
+						<?php
+					}
+					?>
+				</div>
+
+				<div class="item-mediafromftp-settings">
+					<h3><?php _e('Categories'); ?></h3>
+					<div style="display:block;padding:5px 0">
+					<?php _e('Specify categories to register at the same time when registering.', 'media-from-ftp'); ?>
+					</div>
+					<?php
+					if ($mediafromftp_addon_category) {
+						$mlccs = explode(',', $mediafromftp_settings['mlcc']);
+						$emlcs = explode(',', $mediafromftp_settings['emlc']);
+						$mlacs = explode(',', $mediafromftp_settings['mlac']);
+						$mlats = explode(',', $mediafromftp_settings['mlat']);
+						echo $mediafromftpaddoncategory->mlc_category_admin_html($mlccs);
+						echo $mediafromftpaddoncategory->eml_category_admin_html($emlcs);
+						echo $mediafromftpaddoncategory->mla_category_admin_html($mlacs, $mlats);
+					} else {
+						$add_on_url = '<a href="'.admin_url('admin.php?page=mediafromftp-addons').'" style="text-decoration: none; word-break: break-all;"><strong>'.__('Add-Ons', 'media-from-ftp').'(Media from FTP Add On Category)</strong></a>';
+						$use_add_on_html = sprintf(__('This function requires %1$s.', 'media-from-ftp'), $add_on_url);
+						?>
+						<div style="display:block;padding:5px 0">
+						<?php echo $use_add_on_html; ?>
+						</div>
+						<?php
+					}
+					?>
+				</div>
+
+				<div class="item-mediafromftp-settings">
+					<h3>Exif <?php _e('Caption'); ?></h3>
+					<div style="display:block;padding:5px 0">
+					<?php _e('Register the Exif data to the caption.', 'media-from-ftp'); ?>
+					</div>
+					<?php
+					if ($mediafromftp_addon_exif) {
+						$mediafromftpaddonexif->mediafromftp_exif_form($mediafromftp_settings);
+					} else {
+						$add_on_url = '<a href="'.admin_url('admin.php?page=mediafromftp-addons').'" style="text-decoration: none; word-break: break-all;"><strong>'.__('Add-Ons', 'media-from-ftp').'(Media from FTP Add On Exif)</strong></a>';
+						$use_add_on_html = sprintf(__('This function requires %1$s.', 'media-from-ftp'), $add_on_url);
+						?>
+						<div style="display:block;padding:5px 0">
+						<?php echo $use_add_on_html; ?>
+						</div>
+						<?php
+					}
+					?>
+				</div>
+
 				<div style="clear: both;"></div>
 
-			<form method="post" id="mediafromftp_settings_form" action="<?php echo $scriptname; ?>">
-				<?php wp_nonce_field('mff_settings', 'media_from_ftp_settings'); ?>
-				<div style="display: block;padding:5px 5px">
-				<?php submit_button( __('Save Changes'), 'large', 'media-from-ftp-settings-options-apply', FALSE );	?>
-				</div>
-			</form>
+				<form method="post" id="mediafromftp_settings_form" action="<?php echo $scriptname; ?>">
+					<?php wp_nonce_field('mff_settings', 'media_from_ftp_settings'); ?>
+					<div style="display: block;padding:5px 5px">
+					<?php submit_button( __('Save Changes'), 'large', 'media-from-ftp-settings-options-apply', FALSE );	?>
+					</div>
+				</form>
 
 			</div>
 			</div>
@@ -598,9 +758,8 @@ class MediaFromFtpAdmin {
 							$max_execution_time = $mediafromftp_settings['max_execution_time'];
 							if ( !@set_time_limit($max_execution_time) ) {
 								$limit_seconds_html =  '<font color="red">'.$def_max_execution_time.__('seconds', 'media-from-ftp').'</font>';
-								$command_line_html = '<a href="'.admin_url('admin.php?page=mediafromftp-settings#mediafromftp-settings-tabs-3').'">'.__('Command-line', 'media-from-ftp').'</a>';
 								?>
-								<?php echo sprintf(__('Execution time for this server is fixed at %1$s. If this limit is exceeded, the search times out&#40;%2$s, %3$s&#41;. Please use the %4$s if you do not want to be bound by this restriction.', 'media-from-ftp'), $limit_seconds_html, __('Search'), __('Log', 'media-from-ftp'), $command_line_html); ?>
+								<?php echo sprintf(__('Execution time for this server is fixed at %1$s. If this limit is exceeded, the search times out&#40;%2$s, %3$s&#41;.', 'media-from-ftp'), $limit_seconds_html, __('Search'), __('Log', 'media-from-ftp')); ?>
 								<input type="hidden" name="mediafromftp_max_execution_time" form="mediafromftp_settings_form" value="<?php echo $def_max_execution_time; ?>" />
 							<?php
 							} else {
@@ -682,149 +841,19 @@ class MediaFromFtpAdmin {
 			</div>
 			</div>
 
-			<div id="mediafromftp-settings-tabs-3">
-				<h3><?php _e('Command-line', 'media-from-ftp'); ?></h3>
-				<div style="display:block; padding:5px 10px; font-weight: bold;">
-				1. <?php _e('Please [mediafromftpcmd.php] rewrite the following manner.', 'media-from-ftp'); ?>
-				</div>
-				<div style="display:block;padding:5px 20px">
-				<?php
-				$commandline_host = $_SERVER['HTTP_HOST'];
-				$commandline_server = $_SERVER['SERVER_NAME'];
-				$commandline_uri = untrailingslashit(wp_make_link_relative(MEDIAFROMFTP_PLUGIN_SITE_URL));
-				$commandline_wpload = wp_normalize_path(ABSPATH).'wp-load.php';
-				$commandline_pg = wp_normalize_path(MEDIAFROMFTP_PLUGIN_BASE_DIR.'/mediafromftpcmd.php');
-				$commandline_wget = MEDIAFROMFTP_PLUGIN_URL.'/mediafromftpcmd.php';
-$commandline_set = <<<COMMANDLINESET
-
-&#x24_SERVER = array(
-"HTTP_HOST" => "$commandline_host",
-"SERVER_NAME" => "$commandline_server",
-"REQUEST_URI" => "$commandline_uri",
-"REQUEST_METHOD" => "GET",
-"HTTP_USER_AGENT" => "mediafromftp"
-            );
-require_once('$commandline_wpload');
-
-COMMANDLINESET;
-
-				$commandline_wp_options_name = $this->wp_options_name();
-$commandline_set2 = <<<COMMANDLINESET2
-
-	&#x24mediafromftpcron->CronDo('$commandline_wp_options_name');
-
-COMMANDLINESET2;
-
-				?>
-				<?php echo sprintf(__('The line %2$d from line %1$d.', 'media-from-ftp'), 58, 65); ?>
-				<textarea readonly rows="9" style="font-size: 12px; width: 100%;">
-				<?php echo $commandline_set; ?>
-				</textarea>
-				<?php echo sprintf(__('The line %1$d.', 'media-from-ftp'), 70); ?>
-				<textarea readonly rows="2" style="font-size: 12px; width: 100%;">
-				<?php echo $commandline_set2; ?>
-				</textarea>
-				</div>
-				<div style="display:block; padding:5px 10px; font-weight: bold;">
-				2. <?php _e('The execution of the command line.', 'media-from-ftp'); ?>
-				</div>
-				<div style="display:block; padding:5px 10px;">
-				<div>% <code>/usr/bin/php <?php echo $commandline_pg; ?></code></div>
-				<div style="display:block; padding:5px 15px; color:red;"><code>/usr/bin/php</code> >> <?php _e('Please check with the server administrator.', 'media-from-ftp'); ?></div>
-					<div style="display:block;padding:5px 20px">
-					<li style="font-weight: bold;"><?php _e('command line argument list', 'media-from-ftp'); ?></li>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-s</code> <?php _e('Search directory', 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-s wp-content/uploads</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-d</code> <?php _e('Date time settings', 'media-from-ftp'); ?> (new, server, exif)</div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-d exif</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-e</code> <?php _e('Exclude file', 'media-from-ftp'); ?> (<?php _e('Regular expression is possible.', 'media-from-ftp'); ?>)</div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-e "(.ktai.)|(.backwpup_log.)|(.ps_auto_sitemap.)|\.php|\.js"</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-t</code> <?php _e('File type:'); ?> (all, image, audio, video, document, spreadsheet, interactive, text, archive, code)</div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-t image</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-x</code> <?php _e('File extension' , 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-x jpg</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-p</code> <?php _e('Limit number of update files' , 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-p 10</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-f</code> <?php _e('Limit number of search files' , 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-f 100</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-c</code> <?php _e('Exif tags for registering in the caption' , 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-c "%title% %credit% %camera% %caption% %created_timestamp% %copyright% %aperture% %shutter_speed% %iso% %focal_length%"</code></div>
-							</div>
-					<div><?php _e('If the argument is empty, use the set value of the management screen.', 'media-from-ftp'); ?></div>
-					</div>
-					<div style="display:block;padding:5px 20px">
-					<li style="font-weight: bold;"><?php _e('command line switch', 'media-from-ftp'); ?></li>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-h</code> <?php _e('Hides the display of the log.', 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-h</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-g</code> <?php _e('Create log to database.', 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-g</code></div>
-							</div>
-						<div style="display:block;padding:5px 40px">
-						<div><code>-m</code> <?php _e('If you want to search for filename that contains such -0x0. It is low speed.', 'media-from-ftp'); ?></div>
-						</div>
-							<div style="display:block;padding:5px 60px">
-							<div><?php _e('Example:', 'media-from-ftp'); ?> <code>-m</code></div>
-							</div>
-					</div>
-					<div style="color:red;"><?php _e('Command-line, please use by activate sure the plug-in.', 'media-from-ftp'); ?></div>
-				</div>
-				<div style="display:block; padding:5px 10px; font-weight: bold;">
-				3. <?php _e('Register the command-line to the server cron.', 'media-from-ftp'); ?> (<?php _e('Example:', 'media-from-ftp'); ?> <?php _e('Run every 10 minutes.', 'media-from-ftp'); ?>)
-				</div>
-				<div style="display:block; padding:5px 30px;">
-				<li style="font-weight: bold;"><?php _e('example:'); ?>1</li>
-				<div><code>0,10,20,30,40,50 * * * * /usr/bin/php <?php echo $commandline_pg; ?></code></div>
-				<div style="display:block; padding:5px 25px; color:red;"><code>/usr/bin/php</code> >> <?php _e('Please check with the server administrator.', 'media-from-ftp'); ?></div>
-				<li style="font-weight: bold;"><?php _e('example:'); ?>2</li>
-				<div><code>0,10,20,30,40,50 * * * * /usr/bin/wget <?php echo $commandline_wget; ?></code></div>
-				<div style="display:block; padding:5px 25px; color:red;"><code>/usr/bin/wget</code> >> <?php _e('Please check with the server administrator.', 'media-from-ftp'); ?></div>
-				</div>
-			</div>
+			<?php
+			if ( $this->is_add_on_activate['cli'] ) {
+				$mediafromftpcli->mediafromftp_command_line_html($this->wp_options_name());
+				unset($mediafromftpcli);
+			}
+			?>
 
 		</div>
 		</div>
 		<?php
-
+		unset($mediafromftpaddonwpcron);
+		unset($mediafromftpaddoncategory);
 	}
-
 
 	/* ==================================================
 	 * Sub Menu
@@ -857,19 +886,25 @@ COMMANDLINESET2;
 
 			<h2>Media from FTP <a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>" style="text-decoration: none;"><?php _e('Search & Register', 'media-from-ftp'); ?></a>
 				<a href="<?php echo admin_url('admin.php?page=mediafromftp-settings'); ?>" class="page-title-action"><?php _e('Settings'); ?></a>
+				<?php
+				$mediafromftp = new MediaFromFtp();
+				if ( $this->is_add_on_activate['wpcron'] ) {
+					$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+					$mediafromftpaddonwpcron->mediafromftp_event_link_html();
+					unset($mediafromftpaddonwpcron);
+				}
+				?>
 				<a href="<?php echo admin_url('admin.php?page=mediafromftp-log'); ?>" class="page-title-action"><?php _e('Log', 'media-from-ftp'); ?></a>
 				<a href="<?php echo admin_url('admin.php?page=mediafromftp-import'); ?>" class="page-title-action"><?php _e('Import'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-addons'); ?>" class="page-title-action"><?php _e('Add-Ons', 'media-from-ftp'); ?></a>
 			</h2>
 			<div style="clear: both;"></div>
 
 			<div id="mediafromftp-loading"><img src="<?php echo MEDIAFROMFTP_PLUGIN_URL.'/css/loading.gif'; ?>"></div>
 			<div id="mediafromftp-loading-container">
 				<?php
-				include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
-				$mediafromftp = new MediaFromFtp();
 				$formhtml = $mediafromftp->form_html($mediafromftp_settings);
 				unset($mediafromftp);
-				require_once( MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpListTable.php' );
 			    $MediaFromFtpListTable = new TT_MediaFromFtp_List_Table();
 			    $MediaFromFtpListTable->prepare_items($mediafromftp_settings);
 				if ( $MediaFromFtpListTable->max_items > 0 ) {
@@ -893,6 +928,96 @@ COMMANDLINESET2;
 			</div>
 		</div>
 	    <?php
+	}
+
+	/* ==================================================
+	 * Bulk Change Date Time
+	 * @since	9.63
+	 */
+	function custom_bulk_admin_footer() {
+		$mediafromftp_settings = get_option($this->wp_options_name());
+		if ( $mediafromftp_settings['dateset'] === 'server' || $mediafromftp_settings['dateset'] === 'exif' ) {
+			if ($this->is_my_plugin_screen3()) {
+				$now_date_time = date_i18n("Y-m-d H:i");
+				$html = '<div style="float: right;">'.__('Bulk Change', 'media-from-ftp').'<input type="text" id="datetimepicker-mediafromftp0" name="bulk_mediafromftp_datetime" value="'.$now_date_time.'" style="width: 160px; height: 1.7em;" /></div>';
+
+				?>
+				<script type="text/javascript">
+					jQuery('<?php echo $html; ?>').prependTo("#datetime");
+				</script>
+				<?php
+			}
+		}
+	}
+
+	/* ==================================================
+	 * Sub Menu
+	 * for media-from-ftp-add-on-wpcron
+	 */
+	function event_page() {
+
+		$mediafromftp_addon_wpcron = FALSE;
+		$mediafromftp = new MediaFromFtp();
+		if ( $this->is_add_on_activate['wpcron'] ) {
+			$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+			include_once MEDIAFROMFTP_ADDON_WPCRON_PLUGIN_BASE_DIR.'/req/MediaFromFtpCron.php';
+			$mediafromftpcron = new MediaFromFtpCron();
+			$mediafromftp_addon_wpcron = TRUE;
+		}
+
+		if ( !current_user_can( 'upload_files' ) || !$mediafromftp_addon_wpcron )  {
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+		}
+
+		if ( isset($_POST['media_from_ftp_run_cron']) && $_POST['media_from_ftp_run_cron'] ) {
+			if ( check_admin_referer('mff_run_cron', 'media_from_ftp_run_cron') ) {
+				$submenu = 4;
+				$this->options_updated($submenu);
+			}
+		}
+
+		?>
+		<div class="wrap">
+
+		<h2>Media from FTP <?php echo $mediafromftpaddonwpcron->mediafromftp_event_top_link_html(); ?>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>" class="page-title-action"><?php _e('Search & Register', 'media-from-ftp'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-settings'); ?>" class="page-title-action"><?php _e('Settings'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-log'); ?>" class="page-title-action"><?php _e('Log', 'media-from-ftp'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-import'); ?>" class="page-title-action"><?php _e('Import'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-addons'); ?>" class="page-title-action"><?php _e('Add-Ons', 'media-from-ftp'); ?></a>
+		</h2>
+		<div style="clear: both;"></div>
+		<p>
+		<?php
+
+		if ( isset($_POST['media_from_ftp_event']) && $_POST['media_from_ftp_event'] ) {
+			if ( check_admin_referer('mff_event', 'media_from_ftp_event') ) {
+				if ( isset($_POST['event-mediafromftp']) && $_POST['event-mediafromftp'] ) {
+					$events_mediafromftp = $_POST['event-mediafromftp'];
+					$events = get_option( $this->wp_add_on_wpcron_events_name() );
+					$event_names = NULL;
+					foreach ($events_mediafromftp as $key => $event_id ) {
+						$option_name = $events[$event_id];
+						$mediafromftpcron->CronStop($option_name);
+						delete_option($option_name);
+						$event_names .= ' '.$event_id.' ';
+						unset($events[$event_id]);
+						update_option($this->wp_add_on_wpcron_events_name(), $events);
+					}
+					unset($mediafromftpcron);
+					echo $mediafromftpaddonwpcron->mediafromftp_event_notice_html($event_names);
+				}
+			}
+		}
+
+		$scriptname = admin_url('admin.php?page=mediafromftp-event');
+
+		echo $mediafromftpaddonwpcron->mediafromftp_event_html( $scriptname, get_option($this->wp_add_on_wpcron_events_name()) );
+
+		?>
+		</div>
+		<?php
+
 	}
 
 	/* ==================================================
@@ -922,7 +1047,16 @@ COMMANDLINESET2;
 		<h2>Media from FTP <a href="<?php echo admin_url('admin.php?page=mediafromftp-log'); ?>" style="text-decoration: none;"><?php _e('Log', 'media-from-ftp'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>" class="page-title-action"><?php _e('Search & Register', 'media-from-ftp'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-settings'); ?>" class="page-title-action"><?php _e('Settings'); ?></a>
+			<?php
+			$mediafromftp = new MediaFromFtp();
+			if ( $this->is_add_on_activate['wpcron'] ) {
+				$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+				$mediafromftpaddonwpcron->mediafromftp_event_link_html();
+				unset($mediafromftpaddonwpcron);
+			}
+			?>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-import'); ?>" class="page-title-action"><?php _e('Import'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-addons'); ?>" class="page-title-action"><?php _e('Add-Ons', 'media-from-ftp'); ?></a>
 		</h2>
 		<div style="clear: both;"></div>
 
@@ -957,6 +1091,10 @@ COMMANDLINESET2;
 
 		$csv = NULL;
 		$max_thumbnail_count = 0;
+		$max_mlccategories_count = 0;
+		$max_emlcategories_count = 0;
+		$max_mlacategories_count = 0;
+		$max_mlatags_count = 0;
 		$html = '<table>';
 
 		foreach ( $records as $record ) {
@@ -972,6 +1110,58 @@ COMMANDLINESET2;
 					++$count;
 					$html_thumbnail .= '<tr><th align="right" style="white-space: nowrap;">'.__('Featured Image').$count.':</th><td>'.$thumbnail.'</td></tr>';
 					$csvs .= ',"'.$thumbnail.'"';
+				}
+			}
+			$html_mlccategory = NULL;
+			if ( $record->mlccategories ) {
+				$mlccategories = json_decode($record->mlccategories, true);
+				if ( $max_mlccategories_count < count($mlccategories) ) {
+					$max_mlccategories_count = count($mlccategories);
+				}
+				$count = 0;
+				foreach ( $mlccategories as $mlccategory ) {
+					++$count;
+					$html_mlccategory .= '<tr><th align="right" style="white-space: nowrap;">'.__('Categories').'[Media Library Categories]'.$count.':</th><td>'.$mlccategory.'</td></tr>';
+					$csvs .= ',"'.$mlccategory.'"';
+				}
+			}
+			$html_emlcategory = NULL;
+			if ( $record->emlcategories ) {
+				$emlcategories = json_decode($record->emlcategories, true);
+				if ( $max_emlcategories_count < count($emlcategories) ) {
+					$max_emlcategories_count = count($emlcategories);
+				}
+				$count = 0;
+				foreach ( $emlcategories as $emlcategory ) {
+					++$count;
+					$html_emlcategory .= '<tr><th align="right" style="white-space: nowrap;">'.__('Categories').'[Enhanced Media Library]'.$count.':</th><td>'.$emlcategory.'</td></tr>';
+					$csvs .= ',"'.$emlcategory.'"';
+				}
+			}
+			$html_mlacategory = NULL;
+			if ( $record->mlacategories ) {
+				$mlacategories = json_decode($record->mlacategories, true);
+				if ( $max_mlacategories_count < count($mlacategories) ) {
+					$max_mlacategories_count = count($mlacategories);
+				}
+				$count = 0;
+				foreach ( $mlacategories as $mlacategory ) {
+					++$count;
+					$html_mlacategory .= '<tr><th align="right" style="white-space: nowrap;">'.__('Categories').'[Media Library Assistant]'.$count.':</th><td>'.$mlacategory.'</td></tr>';
+					$csvs .= ',"'.$mlacategory.'"';
+				}
+			}
+			$html_mlatag = NULL;
+			if ( $record->mlatags ) {
+				$mlatags = json_decode($record->mlatags, true);
+				if ( $max_mlatags_count < count($mlatags) ) {
+					$max_mlatags_count = count($mlatags);
+				}
+				$count = 0;
+				foreach ( $mlatags as $mlatag ) {
+					++$count;
+					$html_mlatag .= '<tr><th align="right" style="white-space: nowrap;">'.__('Tags').'[Media Library Assistant]'.$count.':</th><td>'.$mlatag.'</td></tr>';
+					$csvs .= ',"'.$mlatag.'"';
 				}
 			}
 			$csvs .= "\n";
@@ -992,13 +1182,26 @@ COMMANDLINESET2;
 			if ( $record->length ) {
 				$html .= '<tr><th align="right" style="white-space: nowrap;">'.__('Length:').'</th><td>'.$record->length.'</td></tr>';
 			}
-			$html .= $html_thumbnail;
+			$html .= $html_thumbnail.$html_mlccategory.$html_emlcategory.$html_mlacategory.$html_mlatag;
 		}
 		$html .= '</table>'."\n";
 		$csv_head = '"ID","'.__('Author').'","'.__('Title').':","'.__('Permalink:').'","URL:","'.__('File name:').'","'.__('Date/Time').':","'.__('File type:').'","'.__('File size:').'","'.__('Caption').'[Exif]:","'.__('Length:').'"';
 		for ($i = 1 ; $i <= $max_thumbnail_count; $i++) {
 			$csv_head .= ',"'.__('Featured Image').$i.'"';
 		}
+		for ($i = 1 ; $i <= $max_mlccategories_count; $i++) {
+			$csv_head .= ',"'.__('Categories').'[Media Library Categories]'.$i.'"';
+		}
+		for ($i = 1 ; $i <= $max_emlcategories_count; $i++) {
+			$csv_head .= ',"'.__('Categories').'[Enhanced Media Library]'.$i.'"';
+		}
+		for ($i = 1 ; $i <= $max_mlacategories_count; $i++) {
+			$csv_head .= ',"'.__('Categories').'[Media Library Assistant]'.$i.'"';
+		}
+		for ($i = 1 ; $i <= $max_mlatags_count; $i++) {
+			$csv_head .= ',"'.__('Tags').'[Media Library Assistant]'.$i.'"';
+		}
+
 		$csv = $csv_head."\n".$csv;
 
 		$csvFileName = MEDIAFROMFTP_PLUGIN_TMP_DIR.'/'.$table_name.'.csv';
@@ -1082,7 +1285,16 @@ COMMANDLINESET2;
 		<h2>Media from FTP <a href="<?php echo $scriptname; ?>" style="text-decoration: none;"><?php _e('Import'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>" class="page-title-action"><?php _e('Search & Register', 'media-from-ftp'); ?></a>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-settings'); ?>" class="page-title-action"><?php _e('Settings'); ?></a>
+			<?php
+			$mediafromftp = new MediaFromFtp();
+			if ( $this->is_add_on_activate['wpcron'] ) {
+				$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+				$mediafromftpaddonwpcron->mediafromftp_event_link_html();
+				unset($mediafromftpaddonwpcron);
+			}
+			?>
 			<a href="<?php echo admin_url('admin.php?page=mediafromftp-log'); ?>" class="page-title-action"><?php _e('Log', 'media-from-ftp'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-addons'); ?>" class="page-title-action"><?php _e('Add-Ons', 'media-from-ftp'); ?></a>
 		</h2>
 		<div style="clear: both;"></div>
 
@@ -1097,7 +1309,6 @@ COMMANDLINESET2;
 					$name = basename($filename);
 					move_uploaded_file($filename, MEDIAFROMFTP_PLUGIN_TMP_DIR.'/'.$name);
 
-					include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
 					$mediafromftp = new MediaFromFtp();
 					?>
 					<h4><?php _e('Assign Authors', 'media-from-ftp'); ?></h4>
@@ -1137,26 +1348,182 @@ COMMANDLINESET2;
 	}
 
 	/* ==================================================
+	 * Sub Menu
+	 */
+	function addons_page() {
+
+		if ( !current_user_can( 'upload_files' ) )  {
+			wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+		}
+
+		$scriptname = admin_url('admin.php?page=mediafromftp-addons');
+
+		?>
+		<div class="wrap">
+
+		<h2>Media from FTP <a href="<?php echo $scriptname; ?>" style="text-decoration: none;"><?php _e('Add-Ons', 'media-from-ftp'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-search-register'); ?>" class="page-title-action"><?php _e('Search & Register', 'media-from-ftp'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-settings'); ?>" class="page-title-action"><?php _e('Settings'); ?></a>
+			<?php
+			$mediafromftp = new MediaFromFtp();
+			if ( $this->is_add_on_activate['wpcron'] ) {
+				$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+				$mediafromftpaddonwpcron->mediafromftp_event_link_html();
+				unset($mediafromftpaddonwpcron);
+			}
+			?>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-log'); ?>" class="page-title-action"><?php _e('Log', 'media-from-ftp'); ?></a>
+			<a href="<?php echo admin_url('admin.php?page=mediafromftp-import'); ?>" class="page-title-action"><?php _e('Import'); ?></a>
+		</h2>
+		<div style="clear: both;"></div>
+
+		<div style="width: 300px; height: 100%; margin: 5px; padding: 5px; border: #CCC 2px solid; float: left;">
+		<h4>Media from FTP Add On Commandline</h4>
+		<div style="margin: 5px; padding: 5px;"><?php _e('This add-on can use "Media from FTP" on the command-line.', 'media-from-ftp'); ?></div>
+		<div style="margin: 5px; padding: 5px;">
+		<li><?php _e('The execution of the command line is supported.(lib/mediafromftpcmd.php)', 'media-from-ftp'); ?></li>
+		</div>
+		<p>
+		<?php
+		if ( is_dir(WP_PLUGIN_DIR.'/media-from-ftp-add-on-cli') ) {
+			?><div style="margin: 5px; padding: 5px;"><strong><?php
+			_e('Installed', 'media-from-ftp');?> & <?php
+			if ( $this->is_add_on_activate['cli'] ) {
+				_e('Activated', 'media-from-ftp');
+			} else {
+				_e('Deactivated', 'media-from-ftp');
+			}
+			?></strong></div><?php
+		} else {
+			?>
+			<div>
+			<a href="<?php _e('https://riverforest-wp.info/media-from-ftp-add-on-cli/', 'media-from-ftp'); ?>" target="_blank" class="page-title-action"><?php _e('BUY', 'media-from-ftp'); ?> &yen;1,000</a>
+			</div>
+			<?php
+		}
+		?>
+		</div>
+
+		<div style="width: 300px; height: 100%; margin: 5px; padding: 5px; border: #CCC 2px solid; float: left;">
+		<h4>Media from FTP Add On Wp Cron</h4>
+		<div style="margin: 5px; padding: 5px;"><?php _e('This add-on can register and execute Cron Event with multiple settings by "Media from FTP".', 'media-from-ftp'); ?></div>
+		<div style="margin: 5px; padding: 5px;">
+		<li><?php _e('Can start multiple Cron Events with multiple settings.', 'media-from-ftp'); ?></li>
+		<li><?php _e('Can add intervals of schedule.', 'media-from-ftp'); ?></li>
+		</div>
+		<p>
+		<?php
+		if ( is_dir(WP_PLUGIN_DIR.'/media-from-ftp-add-on-wpcron') ) {
+			?><div style="margin: 5px; padding: 5px;"><strong><?php
+			_e('Installed', 'media-from-ftp');?> & <?php
+			if ( $this->is_add_on_activate['wpcron'] ) {
+				_e('Activated', 'media-from-ftp');
+			} else {
+				_e('Deactivated', 'media-from-ftp');
+			}
+			?></strong></div><?php
+		} else {
+			?>
+			<div>
+			<a href="<?php _e('https://riverforest-wp.info/media-from-ftp-add-on-wpcron/', 'media-from-ftp'); ?>" target="_blank" class="page-title-action"><?php _e('BUY', 'media-from-ftp'); ?> &yen;2,000</a>
+			</div>
+			<?php
+		}
+		?>
+		</div>
+
+		<div style="width: 300px; height: 100%; margin: 5px; padding: 5px; border: #CCC 2px solid; float: left;">
+		<h4>Media from FTP Add On Category</h4>
+		<div style="margin: 5px; padding: 5px;"><?php _e('This Add-on When registering by "Media from FTP", add Category to Media Library.', 'media-from-ftp'); ?></div>
+		<div style="margin: 5px; padding: 5px;">
+		<li><?php _e('Works with next plugin.', 'media-from-ftp'); ?> [<a style="text-decoration: none;" href="https://wordpress.org/plugins/wp-media-library-categories/" target="_blank">Media Library Categories</a>] [<a style="text-decoration: none;" href="https://wordpress.org/plugins/enhanced-media-library/" target="_blank">Enhanced Media Library</a>] [<a style="text-decoration: none;" href="https://wordpress.org/plugins/media-library-assistant/" target="_blank">Media Library Assistant</a>]</li>
+		</div>
+		<p>
+		<?php
+		if ( is_dir(WP_PLUGIN_DIR.'/media-from-ftp-add-on-category') ) {
+			?><div style="margin: 5px; padding: 5px;"><strong><?php
+			_e('Installed', 'media-from-ftp');?> & <?php
+			if ( $this->is_add_on_activate['category'] ) {
+				_e('Activated', 'media-from-ftp');
+			} else {
+				_e('Deactivated', 'media-from-ftp');
+			}
+			?></strong></div><?php
+		} else {
+			?>
+			<div>
+			<a href="<?php _e('https://riverforest-wp.info/media-from-ftp-add-on-category/', 'media-from-ftp'); ?>" target="_blank" class="page-title-action"><?php _e('BUY', 'media-from-ftp'); ?> &yen;1,000</a>
+			</div>
+			<?php
+		}
+		?>
+		</div>
+
+		<div style="width: 300px; height: 100%; margin: 5px; padding: 5px; border: #CCC 2px solid; float: left;">
+		<h4>Media from FTP Add On Exif</h4>
+		<div style="margin: 5px; padding: 5px;"><?php _e('This Add-on When registering by "Media from FTP", add Exif to Media Library Caption.', 'media-from-ftp'); ?></div>
+		<div style="margin: 5px; padding: 5px;">
+		<li><?php _e('Sort each Exif data to an arbitrary position and insert it into the caption as text.', 'media-from-ftp'); ?></li>
+		<li><a style="text-decoration: none;" href="https://codex.wordpress.org/Function_Reference/wp_read_image_metadata#Return%20Values" target="_blank">Exif</a></li>
+		</div>
+
+		<p>
+		<?php
+		if ( is_dir(WP_PLUGIN_DIR.'/media-from-ftp-add-on-exif') ) {
+			?><div style="margin: 5px; padding: 5px;"><strong><?php
+			_e('Installed', 'media-from-ftp');?> & <?php
+			if ( $this->is_add_on_activate['exif'] ) {
+				_e('Activated', 'media-from-ftp');
+			} else {
+				_e('Deactivated', 'media-from-ftp');
+			}
+			?></strong></div><?php
+		} else {
+			?>
+			<div>
+			<a href="<?php _e('https://riverforest-wp.info/media-from-ftp-add-on-exif/', 'media-from-ftp'); ?>" target="_blank" class="page-title-action"><?php _e('BUY', 'media-from-ftp'); ?> &yen;500</a>
+			</div>
+			<?php
+		}
+		?>
+		</div>
+
+		<?php
+	}
+
+	/* ==================================================
 	 * Update wp_options table.
 	 * @param	int		$submenu
 	 * @since	2.36
 	 */
 	function options_updated($submenu){
 
-		include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/req/MediaFromFtpCron.php';
-		$mediafromftpcron = new MediaFromFtpCron();
-
-		include_once MEDIAFROMFTP_PLUGIN_BASE_DIR.'/inc/MediaFromFtp.php';
 		$mediafromftp = new MediaFromFtp();
 
 		$mediafromftp_settings = get_option($this->wp_options_name());
 
+		$addonwpcron = FALSE;
+		if ( $this->is_add_on_activate['wpcron'] ) {
+			$mediafromftpaddonwpcron = new MediaFromFtpAddOnWpcron();
+			$addonwpcron = TRUE;
+		}
+
 		switch ($submenu) {
 			case 1:
+				if ( !empty($_POST['mediafromftp_datefixed']) ) {
+					$datefixed = $_POST['mediafromftp_datefixed'];
+				} else {
+					$datefixed = $mediafromftp_settings['datefixed'];
+				}
 				if ( !empty($_POST['mediafromftp_cron_apply']) ) {
 					$mediafromftp_cron_apply = $_POST['mediafromftp_cron_apply'];
 				} else {
 					$mediafromftp_cron_apply = FALSE;
+				}
+				if ( !empty($_POST['mediafromftp_cron_schedule']) ) {
+					$mediafromftp_cron_schedule = $_POST['mediafromftp_cron_schedule'];
+				} else {
+					$mediafromftp_cron_schedule = $mediafromftp_settings['cron']['schedule'];
 				}
 				if ( !empty($_POST['mediafromftp_cron_limit_number']) ) {
 					$mediafromftp_cron_limit_number = $_POST['mediafromftp_cron_limit_number'];
@@ -1198,6 +1565,26 @@ COMMANDLINESET2;
 				} else {
 					$search_limit_number = 100000;
 				}
+				if ( !empty($_POST['mlc_category']) ) {
+					$mlcc = implode(',', $_POST['mlc_category']);
+				} else {
+					$mlcc = NULL;
+				}
+				if ( !empty($_POST['eml_category']) ) {
+					$emlc = implode(',', $_POST['eml_category']);
+				} else {
+					$emlc = NULL;
+				}
+				if ( !empty($_POST['mla_category']) ) {
+					$mlac = implode(',', $_POST['mla_category']);
+				} else {
+					$mlac = NULL;
+				}
+				if ( !empty($_POST['mla_tag']) ) {
+					$mlat = implode(',', $_POST['mla_tag']);
+				} else {
+					$mlat = NULL;
+				}
 				$mediafromftp_tbl = array(
 									'pagemax' => $mediafromftp_settings['pagemax'],
 									'basedir' => $mediafromftp_settings['basedir'],
@@ -1206,6 +1593,8 @@ COMMANDLINESET2;
 									'extfilter' => $mediafromftp_settings['extfilter'],
 									'search_display_metadata' => $mediafromftp_settings['search_display_metadata'],
 									'dateset' => $_POST['mediafromftp_dateset'],
+									'datefixed' => $datefixed,
+									'datetimepicker' => $mediafromftp_settings['datetimepicker'],
 									'max_execution_time' => intval($_POST['mediafromftp_max_execution_time']),
 									'character_code' => $_POST['mediafromftp_character_code'],
 									'exclude' => $mediafromftp_settings['exclude'],
@@ -1213,7 +1602,7 @@ COMMANDLINESET2;
 									'search_limit_number' => $search_limit_number,
 									'cron' => array(
 												'apply' => $mediafromftp_cron_apply,
-												'schedule' => $_POST['mediafromftp_cron_schedule'],
+												'schedule' => $mediafromftp_cron_schedule,
 												'limit_number' => $mediafromftp_cron_limit_number,
 												'mail_apply' => $mediafromftp_cron_mail_apply,
 												'mail' => $mediafromftp_settings['cron']['mail'],
@@ -1223,18 +1612,17 @@ COMMANDLINESET2;
 												'apply' => $mediafromftp_caption_apply,
 												'exif_text' => $exif_text
 												),
-									'log' => $mediafromftp_apply_log
+									'log' => $mediafromftp_apply_log,
+									'mlcc' => $mlcc,
+									'emlc' => $emlc,
+									'mlac' => $mlac,
+									'mlat' => $mlat
 									);
 				update_option( $this->wp_options_name(), $mediafromftp_tbl );
 				if ( !empty($_POST['move_yearmonth_folders']) ) {
 					update_option( 'uploads_use_yearmonth_folders', $_POST['move_yearmonth_folders'] );
 				} else {
 					update_option( 'uploads_use_yearmonth_folders', '0' );
-				}
-				if ( !$mediafromftp_cron_apply ) {
-					$mediafromftpcron->CronStop($this->wp_options_name());
-				} else {
-					$mediafromftpcron->CronStart($this->wp_options_name());
 				}
 				echo '<div class="notice notice-success is-dismissible"><ul><li>'.__('Settings').' --> '.__('Changes saved.').'</li></ul></div>';
 				break;
@@ -1243,6 +1631,11 @@ COMMANDLINESET2;
 					$pagemax = intval($_POST['mediafromftp_pagemax']);
 				} else {
 					$pagemax = $mediafromftp_settings['pagemax'];
+				}
+				if ( !empty($_POST['mediafromftp_datetimepicker']) ) {
+					$datetimepicker = intval($_POST['mediafromftp_datetimepicker']);
+				} else {
+					$datetimepicker = 0;
 				}
 				$basedir = $mediafromftp_settings['basedir'];
 				if (!empty($_POST['searchdir'])){
@@ -1295,6 +1688,8 @@ COMMANDLINESET2;
 									'extfilter' => $extfilter,
 									'search_display_metadata' => $search_display_metadata,
 									'dateset' => $mediafromftp_settings['dateset'],
+									'datefixed' => $mediafromftp_settings['datefixed'],
+									'datetimepicker' => $datetimepicker,
 									'max_execution_time' => $mediafromftp_settings['max_execution_time'],
 									'character_code' => $mediafromftp_settings['character_code'],
 									'exclude' => $mediafromftp_exclude,
@@ -1312,7 +1707,11 @@ COMMANDLINESET2;
 													'apply' => $mediafromftp_settings['caption']['apply'],
 													'exif_text' => $mediafromftp_settings['caption']['exif_text']
 												),
-									'log' => $mediafromftp_settings['log']
+									'log' => $mediafromftp_settings['log'],
+									'mlcc' => $mediafromftp_settings['mlcc'],
+									'emlc' => $mediafromftp_settings['emlc'],
+									'mlac' => $mediafromftp_settings['mlac'],
+									'mlat' => $mediafromftp_settings['mlat']
 									);
 				update_option( $this->wp_options_name(), $mediafromftp_tbl );
 				break;
@@ -1327,19 +1726,67 @@ COMMANDLINESET2;
 				}
 				break;
 			case 4:
-				if ( !empty($_POST['mediafromftp_run_cron']) ) {
-					$cron_args = array( 'wp_options_name' => $this->wp_options_name() );
-					$crons = _get_cron_array();
-					foreach ( $crons as $time => $cron ) {
-						foreach ( $cron as $procname => $task ) {
-							if ( $procname === 'MediaFromFtpCronHook' ) {
-								delete_transient( 'doing_cron' );
-								wp_schedule_single_event( time() - 1, 'MediaFromFtpCronHook', $cron_args );
-								spawn_cron();
-								echo '<div class="notice notice-success is-dismissible"><ul><li>'.__('Schedule was executed.', 'media-from-ftp').'</li></ul></div>';
-							}
+				// for media-from-ftp-add-on-wpcron
+				if ( $addonwpcron ) {
+					if ( !empty($_POST['mediafromftp_run_cron']) ) {
+						$mediafromftp_cron_events = get_option( $this->wp_add_on_wpcron_events_name() );
+						if ( !empty($_POST['cron-run']) ) {
+							$option_name = $_POST['cron-run'];
+							echo $mediafromftpaddonwpcron->CronRun($option_name);
+						} elseif ( !empty($_POST['cron-start']) ) {
+							$option_name = $_POST['cron-start'];
+							echo $mediafromftpaddonwpcron->CronRunStart($option_name);
+						} elseif ( !empty($_POST['cron-stop']) ) {
+							$option_name = $_POST['cron-stop'];
+							echo $mediafromftpaddonwpcron->CronRunStop($option_name);
 						}
 					}
+				} else {
+					$mediafromftp_settings['cron']['apply'] = FALSE;
+					update_option( $this->wp_options_name(), $mediafromftp_settings );
+				}
+				break;
+			case 5:
+				// for media-from-ftp-add-on-wpcron
+				if ( !empty($_POST['mediafromftp_add_schedule']) ) {
+					if ( !empty($_POST['mediafromftp_cron_schedule_innername']) && !empty($_POST['mediafromftp_cron_schedule_secounds']) && !empty($_POST['mediafromftp_cron_schedule_viewname']) ) {
+						$mediafromftp_cron_intervals_tbl = get_option( 'mediafromftp_event_intervals' );
+						$innername = $_POST['mediafromftp_cron_schedule_innername'];
+						$secounds = intval($_POST['mediafromftp_cron_schedule_secounds']);
+						$viewname = $_POST['mediafromftp_cron_schedule_viewname'];
+						$mediafromftp_cron_intervals_tbl[$innername] = array(
+																		'interval' => $secounds,
+																		'display' => $viewname
+																		);
+						update_option( 'mediafromftp_event_intervals', $mediafromftp_cron_intervals_tbl );
+						echo $mediafromftpaddonwpcron->mediafromftp_schedule_notice_html($submenu);
+					}
+				}
+				break;
+			case 6:
+				// for media-from-ftp-add-on-wpcron
+				if ( !empty($_POST['mediafromftp_add_schedule_delete']) ) {
+					if ( !empty($_POST['mediafromftp_cron_schedule_delete']) ) {
+						$delete_keys = $_POST['mediafromftp_cron_schedule_delete'];
+						$mediafromftp_cron_intervals_tbl = get_option( 'mediafromftp_event_intervals' );
+						foreach ( $delete_keys as $key ) {
+							unset($mediafromftp_cron_intervals_tbl[$key]);
+						}
+						update_option( 'mediafromftp_event_intervals', $mediafromftp_cron_intervals_tbl );
+						echo $mediafromftpaddonwpcron->mediafromftp_schedule_notice_html($submenu);
+					}
+				}
+				break;
+			case 7:
+				// for media-from-ftp-add-on-wpcron
+				if ( !empty($_POST['mediafromftp_cron_event_create']) ) {
+					$event_id = date_i18n("Y-m-d-H-i-s");
+					$event_option_name = 'mediafromftp_cronevent-'.$event_id;
+					$mediafromftp_cron_events = get_option( $this->wp_add_on_wpcron_events_name(), array() );
+					$mediafromftp_cron_events[$event_id] = $event_option_name;
+					update_option( $this->wp_add_on_wpcron_events_name(), $mediafromftp_cron_events );
+					update_option( $event_option_name, $mediafromftp_settings);
+					echo $mediafromftpaddonwpcron->mediafromftp_cronevent_create_html();
 				}
 				break;
 		}
@@ -1362,6 +1809,37 @@ COMMANDLINESET2;
 
 	}
 
-}
+	/* ==================================================
+	 * @param	none
+	 * @return	string	$wp_cron_events_name
+	 * @since	9.71
+	 */
+	function wp_add_on_wpcron_events_name(){
 
+		$user = wp_get_current_user();
+		$cron_user = $user->ID;
+
+		$wp_cron_events_name = 'mediafromftp_add_on_wpcron_events'.'_'.$cron_user;
+
+		return $wp_cron_events_name;
+
+	}
+
+	/* ==================================================
+	 * @param	string	$output
+	 * @return	string	$output
+	 * @since	9.75
+	 */
+	function custom_robots_txt($output) {
+
+		$public = get_option( 'blog_public' );
+		if ( '0' != $public ) {
+			$output .= 'Disallow: '.MEDIAFROMFTP_PLUGIN_DISALLOW_TMP_DIR."\n";
+		}
+
+		return $output;
+
+	}
+
+}
 ?>
