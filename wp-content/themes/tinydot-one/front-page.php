@@ -95,6 +95,66 @@ get_header(); ?>
                     </a>
                 </div>
             </div>
+    <div id="skip-to-contact" class="about-artist"><!-- Begin Artist About Section-->
+                <h4 class="front-headline">About TiNYDoT</h4>
+                <div class="artist"><!-- Begin Artist Container -->
+                    <div class="artist-bottom">
+                    <p>After struggling to start our business as a web design and development company, we 
+                        decided it was time to come up with a better solution. We came up with a list
+                        of simple steps that anyone can follow, to get their own business started from the
+                        ground up. After months of work and countless hours of testing, we have developed a
+                        step by step system for business owners to eliminate the insanity of wading though numerous
+                        articles and infinitely flowing advice on how to start a business.</p>
+                    <p>TiNYDoT also offers full service branding, design and development options for small business
+                        owners who would like to step it up and get more professional with their online presence. If
+                        you are looking to drastically improve your website, logo or company brand, we can help!
+                    </p>
+                    </div>
+                    <div class="box-artist-image">
+                        <img src="wp-content/uploads/2017/10/headshot-meg-two.jpg" class="artist-img">
+                    </div>
+                    <div class="box-artist-desc">
+                    <p class="artist-desc">Meg Miller is a web developer... Turkey hamburger pork chop short loin 
+                        meatball jerky venison kevin. Filet mignon pork t-bone pig ham hock bacon shankle beef beef
+                        ribs tri-tip frankfurter. Rump jerky sausage, meatloaf short loin ball tip spare ribs. 
+                        Jowl shoulder short ribs fatback chuck, drumstick turducken sausage landjaeger t-bone rump alcatra. </p>
+                    </div>
+                    
+                    <div class="artist-bottom">
+                                            
+                        <blockquote>Coding is my Zen place. It's where I live. If the keyboard's a rockin' don't come a knockin'.</blockquote>
+                        
+                    </div>
+                    <div class="artist"><!-- Begin Artist Container -->
+                    <div class="box-artist-image">
+                        <img src="wp-content/uploads/2017/10/headshot-meg-two.jpg" class="artist-img">
+                    </div>
+                    <div class="box-artist-desc">
+                    <p class="artist-desc">Joe Passarelli is a designer and brand specialist Turkey hamburger pork chop 
+                        short loin meatball jerky venison kevin. Filet mignon pork t-bone pig ham hock bacon shankle beef 
+                        beef ribs tri-tip frankfurter. Rump jerky sausage, meatloaf short loin ball tip spare ribs. 
+                        Jowl shoulder short ribs fatback chuck, drumstick turducken sausage landjaeger t-bone rump alcatra. </p>
+                    </div>
+                    
+                    <div class="artist-bottom">
+                        
+                        <blockquote>Design is the transformation of ideas into reality. I love to help others turn their visions
+                        into fully realized brands and designs.</blockquote>
+                        
+                    </div>
+                </div><!-- End Artist Container -->
+                <div class="continue-reading artist-follow">
+                    
+                    <a href="https://www.facebook.com" target="_blank">
+                        <?php
+                                printf(
+                                        wp_kses( __( 'Follow Phil', 'phil' ), array( 'span' => array( 'class' => array() ) ) ),
+                                        the_title( '<span class="screen-reader-text">"', '"</span>', false )
+                                );
+                        ?>
+                    </a>
+                </div>
+            </div><!-- End Artist About Section-->
 <!--            <div id="skip-to-contact" class="contact-section">
                 <h4 class="front-headline">Contact</h4>
               

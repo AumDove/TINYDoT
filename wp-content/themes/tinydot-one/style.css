@@ -4045,6 +4045,93 @@ span#noticed {
         border-bottom:none;
     }
 
+/* About us Section*/
+
+/*Artist Section*/
+
+.about-artist  h4{
+    padding:2rem 0;
+}
+div.artist {
+   /*width:95%;*/
+    padding: 3rem 1rem;
+    margin-bottom:2rem;
+    /*padding-top:3rem;*/
+    /*flex-wrap: wrap;*/
+    display:flex;
+    flex-direction:column;
+    /*justify-content:space-around;*/
+    background-color: rgb(241, 243, 244);
+    border-radius: 3em;
+}
+div.artist-bottom {
+    width:90%;
+}
+.box-artist-image {
+    width:95%;
+    display:flex;
+    justify-content: center;
+}
+.artist-img{
+    border-radius:50%;
+    height: 10em;
+    width:auto;
+}
+
+.box-artist-desc {
+    display:flex;
+    justify-content: center;
+}
+.artist-desc {
+    font-size: .95em;
+    padding-top:2.5rem;
+}
+
+@media screen and (min-width:65em){
+    
+    /*Artist Section*/
+
+    .about-artist  h4{
+        padding:2rem 0;
+    }
+    div.artist {
+        width:95%;
+        padding: 3rem 1rem;
+        margin-bottom:2rem;
+        flex-wrap: wrap;
+        display:flex;
+        flex-direction:row;
+        justify-content:space-around;
+        background-color: rgb(241, 243, 244);
+        border-radius: 5%;
+    }
+    div.artist-bottom {
+        width:90%;
+    }
+    .box-artist-image {
+        width:20%;
+        display:flex;
+        justify-content: center;
+        margin-top:3rem;
+    }
+    .artist-img{
+        height: 8em;
+        width:8em;
+        border-radius: 50%;
+    }
+    .artist-desc {
+        font-size:1em;
+    }
+    .box-artist-desc {
+
+        width: 70%;
+        align-self:flex-end;
+        display:flex;
+        flex-wrap:wrap;
+    }
+    
+}
+    
 /*Single Featured*/
 .featured-work-meta h3,
 .single-work-meta h3 {
