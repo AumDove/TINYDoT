@@ -81,9 +81,22 @@ get_header(); ?>
         </ul>
     
             <div class="all-work">
-                <h4 class="front-headline">Check Out More Projects</h4>
-                <p>Some of our projects are still in progress and we encourage you to check them out and follow me during my journey of the design and development process! Feel free to contact us about any of these designs and we can get in touch with you to see if we will be a good fit. </p>
-                <div class="continue-reading">
+                <h4 class="front-headline"><a href="/featured-work" rel="bookmark">Check Out More Projects</a></h4>
+                <p>Some of our projects are still in progress and we encourage you to check them out and follow us during our journey
+                    of the design and development process! Feel free to <a href="mailto:tinydotllc@gmail.com?subject=I'd like to work with you">contact us</a> about any of these designs and we can get in touch 
+                    with you to see if we will be a good fit. </p>
+                    <div class="continue-reading contact-me">
+
+                        <a href="mailto:tinydotllc@gmail.com?subject=Hey, Meg! What's the next step?">
+                            <?php
+                                    printf(
+                                            wp_kses( __( 'Contact Us', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
+                                            the_title( '<span class="screen-reader-text">"', '"</span>', false )
+                                    );
+                            ?>
+                        </a>
+                    </div>
+<!--                <div class="continue-reading">
                     
                     <a href="/featured-work" rel="bookmark">
                         <?php
@@ -93,7 +106,7 @@ get_header(); ?>
                                 );
                         ?>
                     </a>
-                </div>
+                </div>-->
             </div>
     <div id="skip-to-contact" class="about-artist"><!-- Begin Artist About Section-->
                 <h4 class="front-headline">About TiNYDoT</h4>
@@ -143,7 +156,7 @@ get_header(); ?>
                         
                     </div>
                 </div><!-- End Artist Container -->
-                <div class="continue-reading artist-follow">
+<!--                <div class="continue-reading artist-follow">
                     
                     <a href="https://www.facebook.com" target="_blank">
                         <?php
@@ -154,7 +167,7 @@ get_header(); ?>
                         ?>
                     </a>
                 </div>
-            </div><!-- End Artist About Section-->
+            </div> End Artist About Section-->
 <!--            <div id="skip-to-contact" class="contact-section">
                 <h4 class="front-headline">Contact</h4>
               
