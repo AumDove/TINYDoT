@@ -2185,6 +2185,16 @@ BEGIN MEDIA QUERIES
         font-size: 2.25rem;
     }
 }
+
+/* iPhone 6 About section*/
+
+div.artist-top,
+.artist-desc{
+    margin: 0 1.5rem;
+    line-height:1.75em;
+}
+
+
 /*iPhone 6 Landscape Header */
 @media screen and (min-height:375px){
 
@@ -4083,12 +4093,24 @@ div.artist {
     /*flex-wrap: wrap;*/
     display:flex;
     flex-direction:column;
+    flex-wrap:wrap;
     background-color: rgb(241, 243, 244);
     /*justify-content:space-around;*/
     border-radius: 2em;
 }
 div.artist-top {
     width:90%;
+}
+.artist-img a::before {
+	content: "…"
+}
+
+.artist-img::before {
+    display: flex;
+    content: "";
+    width: 100%;
+    border-bottom: 1px solid #c3c3c3;
+    margin: 2em auto;
 }
 .artist-container {
     margin:0;
@@ -4100,7 +4122,7 @@ div.artist-top {
 }
 .artist-img img{
     border-radius:50%;
-    height: auto;
+    height: 10em;
     width:10em;
 }
 
@@ -4113,15 +4135,14 @@ div.artist-top {
     padding-top:2.5rem;
 }
 
-
 .social-links-container {
     display:flex;
     display: flex;
     justify-content: space-around;
     margin: 0 3%;
     width: 90%;
-    
 }
+
 h6.social-head{
     font-size:1em;
     font-family: 'Handlee', cursive;
@@ -4129,11 +4150,13 @@ h6.social-head{
     margin:1em 0;
     padding:0;
 }
+
 li.single-social-links {
     justify-content: center;
     margin:2% 0;
     padding:0;
 }
+
 @media screen and (min-width:40em){
     .social-links-container {
         display:flex;
@@ -4144,45 +4167,9 @@ li.single-social-links {
 }
 @media screen and (min-width:50em){
     
-    /*Artist Section*/
 
-    .about-artist  h4{
-        padding:2rem 0;
-    }
-    div.artist {
-        width: 95%;
-        padding: 5rem 1rem 3rem 1rem;
-        margin: 0 2%;
-        flex-wrap: wrap;
-        display: flex;
-        flex-direction: row;
-        justify-content: space-around;
-        background-color: rgb(241, 243, 244);
-        border-radius: 5%;
-    }
-    div.artist-bottom {
-        width:90%;
-    }
-    .box-artist-image {
-       
-    }
-    .artist-img{
-        height: 8em;
-        width:8em;
-        border-radius: 50%;
-    }
-    .artist-desc {
-        font-size:1em;
-    }
-    .box-artist-desc {
 
-        width: 70%;
-        align-self:flex-end;
-        display:flex;
-        flex-wrap:wrap;
-    }
-    
-}
+
 @media screen and (min-width:65em){
     
    .social-links-container {
@@ -4197,7 +4184,7 @@ li.single-social-links {
         
     }
     li.single-social-links {
-   
+    }
 
 }
 /*Single Featured*/
