@@ -58,8 +58,9 @@
                                 <p id="full-hero-text">Our mission is to provide comfort, confidence and concise steps for a new business owner to get from being an individual to a fully realized brand and a legitimized company. </p> 
 
                                 <div class="flex-container-nav">
-                                    <a id="button-two" href="https://tinydot.teachable.com" target="_blank" class="nav-button" >Enroll</a>
                                     <a id="button-one" href="#skip-to-featured" class="nav-button" >Projects</a>
+                                    <a id="button-two" href="#skip-to-contact" class="nav-button" >About</a>
+                                    
                                 </div>
                             </div> 
                             </div>

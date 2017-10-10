@@ -12,7 +12,7 @@ get_header(); ?>
 
 <div id="primary" class="content-area">
     <main id="front" class="site-main" role="main">
-        <div id="skip-to-course-section" class="course-section">
+<!--        <div id="skip-to-course-section" class="course-section">
             <div class="">
                 <h4 class="course-head">Learn with TiNYDoT</h4>
                 <h5 class="course-sub-head">Build Your Business &AMP; Keep Your Sanity</h5>
@@ -30,7 +30,7 @@ get_header(); ?>
                         ?>
 
                         <li class="individual-course-info">
-    <!--                        <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>-->
+                            <h3><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
                             <h6><?php echo $benefit; ?></h6>
                             <figure class="awesome-icon"><?php echo $faicon; ?></figure>
 
@@ -56,7 +56,7 @@ get_header(); ?>
             </div>
         
         
-        
+        -->
     <h4 id="skip-to-featured" class="front-headline">Featured Work</h4> 
         <ul class="frontpage-flexbox-featured">
             <?php query_posts('posts_per_page=3&post_type=featured_work'); ?>
