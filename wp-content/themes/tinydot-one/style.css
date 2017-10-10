@@ -3313,8 +3313,9 @@ a:active {
 .continue-reading a::after {
 	content: "…"
 }
+
 .continue-reading::after {
-	display: block;
+    display: block;
     content: "";
     width: 7em;
     border-bottom: 1px solid #c3c3c3;
@@ -3983,6 +3984,7 @@ h4.front-headline {
     color:#004466;
     text-align:center;
     word-break: break-word;
+    margin-top:2em;
 }
  h3.single-title {
     text-align: center;
@@ -4172,16 +4174,10 @@ li.single-social-links {
     
     }
     h6.social-head{
-        font-size:1em;
-        font-family: 'Handlee', cursive;
-        color: #004466;
-        margin:1em 0;
-        padding:0;
+        
     }
     li.single-social-links {
-        justify-content: center;
-        margin:2% 0;
-        padding:0;
+        
     }
 }
 @media screen and (min-width:65em){
@@ -4193,17 +4189,12 @@ li.single-social-links {
         width:40%;
     }
     h6.social-head{
-        font-size:1em;
-        font-family: 'Handlee', cursive;
-        color: #004466;
+        
         margin:1em 0;
-        padding:0;
+        
     }
     li.single-social-links {
-        justify-content: center;
-        margin:2% 0;
-        padding:0;
-    }
+   
 
 }
 /*Single Featured*/

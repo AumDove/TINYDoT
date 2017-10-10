@@ -82,31 +82,11 @@ get_header(); ?>
     
             <div class="all-work">
                 <h4 class="front-headline"><a href="/featured-work" rel="bookmark">Check Out More Projects</a></h4>
-                <p>Some of our projects are still in progress and we encourage you to check them out and follow us during our journey
-                    of the design and development process! Feel free to <a href="mailto:tinydotllc@gmail.com?subject=I'd like to work with you">contact us</a> about any of these designs and we can get in touch 
-                    with you to see if we will be a good fit. </p>
-                    <div class="continue-reading contact-me">
+                
+                    <div class="continue-reading">
 
-                        <a href="mailto:tinydotllc@gmail.com?subject=Hey, Meg! What's the next step?">
-                            <?php
-                                    printf(
-                                            wp_kses( __( 'Contact Us', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
-                                            the_title( '<span class="screen-reader-text">"', '"</span>', false )
-                                    );
-                            ?>
-                        </a>
                     </div>
-<!--                <div class="continue-reading">
-                    
-                    <a href="/featured-work" rel="bookmark">
-                        <?php
-                                printf(
-                                        wp_kses( __( 'Projects List %s', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
-                                        the_title( '<span class="screen-reader-text">"', '"</span>', false )
-                                );
-                        ?>
-                    </a>
-                </div>-->
+
             </div>
     <div id="skip-to-contact" class="about-artist"><!-- Begin Artist About Section-->
                 <h4 class="front-headline">About TiNYDoT</h4>
@@ -177,7 +157,7 @@ get_header(); ?>
                     </div>
                 </div><!-- End Artist Container -->
                 <ul class="social-links-container">
-                    <li class="single-social-links"><h6 class="social-head">Follow Us: </h6></li>
+                    <h6 class="social-head">Follow Us: </h6>
                     <?php query_posts('post_type=social_links'); ?>
                         <?php while ( have_posts() ): the_post();
                         
@@ -186,7 +166,7 @@ get_header(); ?>
                         ?>
                     
                         <li class="single-social-links">
-                            <figure class="social-icon"><a target="_blank" href=" <?php echo $medialink ?>"<?php echo $socialicon; ?></a></figure>
+                            <figure class="social-icon"><a target="_blank" href=" <?php echo $medialink ?>  " </a><?php echo $socialicon; ?></figure>
                             
                         </li>
                         
