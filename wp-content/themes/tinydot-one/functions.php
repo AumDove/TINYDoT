@@ -376,6 +376,19 @@ function create_custom_post_types() {
                 ),
             )
     );
+    register_post_type('about_section',
+            array(
+            'labels' => array (
+                'name' => __( 'About Section' ),
+                'singular_name' => __( 'Member' )
+                ),
+            'public' => true,
+            'has_archive' => false,
+            'rewrite' => array(
+                'slug' => 'about_section'
+                ),
+            )
+    );
 }
 // Hook this custompost type function into the theme
 add_action( 'init', 'create_custom_post_types' );
