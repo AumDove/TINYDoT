@@ -110,6 +110,24 @@ get_header(); ?>
             </div>
     <div id="skip-to-contact" class="about-artist"><!-- Begin Artist About Section-->
                 <h4 class="front-headline">About TiNYDoT</h4>
+                <ul class="social-links-container">
+                    <li class="single-social-links"><h6 class="social-head">Follow Us: </h6></li>
+                    <?php query_posts('post_type=social_links'); ?>
+                        <?php while ( have_posts() ): the_post();
+                        
+                            $socialicon = get_field("social_icon");
+                            $medialink = get_field("media_link");
+                        ?>
+                    
+                        <li class="single-social-links">
+                            <figure class="social-icon"><a target="_blank" href=" <?php echo $medialink ?>"<?php echo $socialicon; ?></a></figure>
+                            
+                        </li>
+                        
+                        <?php endwhile; //end of the loop. ?>
+                        <?php wp_reset_query(); //resets the altered query back to original. ?>
+                       
+                </ul>
                 <div class="artist"><!-- Begin Artist Container -->
                     <div class="artist-bottom">
                     <p>After struggling to start our business as a web design and development company, we 
@@ -155,52 +173,27 @@ get_header(); ?>
                         into fully realized brands and designs.</blockquote>
                         
                     </div>
+                        
+                    </div>
                 </div><!-- End Artist Container -->
-<!--                <div class="continue-reading artist-follow">
-                    
-                    <a href="https://www.facebook.com" target="_blank">
-                        <?php
-                                printf(
-                                        wp_kses( __( 'Follow Phil', 'phil' ), array( 'span' => array( 'class' => array() ) ) ),
-                                        the_title( '<span class="screen-reader-text">"', '"</span>', false )
-                                );
+                <ul class="social-links-container">
+                    <li class="single-social-links"><h6 class="social-head">Follow Us: </h6></li>
+                    <?php query_posts('post_type=social_links'); ?>
+                        <?php while ( have_posts() ): the_post();
+                        
+                            $socialicon = get_field("social_icon");
+                            $medialink = get_field("media_link");
                         ?>
-                    </a>
-                </div>
-            </div> End Artist About Section-->
-<!--            <div id="skip-to-contact" class="contact-section">
-                <h4 class="front-headline">Contact</h4>
-              
-                <p>Let's begin the process of getting your website live and out in the wild! Since my skillset is varied, I am flexible to create many types of full-scale websites, one-page layouts or even blog sites. What this means for you is that I can accommodate the many different needs a small business or freelancer needs to get their business <span id="noticed">noticed</span> without spending a fortune in valuable time and money. </p>
                     
-
-                <div class="continue-reading">
-                    
-                    <a href="mailto:hello@www.tinydot-llc.dev?subject=Hey, Meg! What's the next step?">
-                        <?php
-                                printf(
-                                        wp_kses( __( 'Get Started', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
-                                        the_title( '<span class="screen-reader-text">"', '"</span>', false )
-                                );
-                        ?>
-                    </a>
-                </div>
-            </div>-->
-<!--             <div class="blog-button">
-                <h4 class="front-headline">Read Our Blog</h4>
-                <p>While I love to write blogs and short articles, I find myself coding up designs much more often than I find myself blogging these days. Nonetheless, you are always welcome to check out my blog where I share experiences in starting and running a very small home business, staying sane in a small world of doing <strong>ALL</strong> the jobs, all the time, and my fiancee even chimes in with a perspective that only Joe can offer. Click the button below to check it out!</p>
-                <div class="continue-reading  front-blog">
-                    
-                    <a href="/blog" rel="bookmark">
-                        <?php
-                                printf(
-                                        wp_kses( __( 'Read Our Blog %s', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
-                                        the_title( '<span class="screen-reader-text">"', '"</span>', false )
-                                );
-                        ?>
-                    </a>
-                </div>
-            </div>-->
+                        <li class="single-social-links">
+                            <figure class="social-icon"><a target="_blank" href=" <?php echo $medialink ?>"<?php echo $socialicon; ?></a></figure>
+                            
+                        </li>
+                        
+                        <?php endwhile; //end of the loop. ?>
+                        <?php wp_reset_query(); //resets the altered query back to original. ?>
+                       
+                </ul>
 
     </main><!-- #main -->
 </div><!-- #primary -->

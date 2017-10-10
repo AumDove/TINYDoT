@@ -2294,7 +2294,7 @@ BEGIN MEDIA QUERIES
     .header-container {
         position: relative;
         margin-left: 8rem;
-        background-color: rgba(9, 53, 85, 0.75);
+        background: rgba(38,46,69, .90);
         width: 65%;
         height: 55vh;
         border-radius: 20px;/*
@@ -2307,8 +2307,8 @@ BEGIN MEDIA QUERIES
         align-self:center;
         /*font-weight:bold;*/
         text-shadow:none;
-        margin: 13% 5%;
-        font-size:375%;
+        margin: 9% 5%;
+        font-size:325%;
         display:flex;
     }
     #full-hero-text {
@@ -4052,21 +4052,24 @@ span#noticed {
 /* About us Section*/
 
 /*Artist Section*/
-
+.about-artist {
+    
+    width:100%;
+}
 .about-artist  h4{
     padding:2rem 0;
 }
 div.artist {
    /*width:95%;*/
-    padding: 3rem 1rem;
+    padding: 3rem 2rem;
     margin-bottom:2rem;
     /*padding-top:3rem;*/
     /*flex-wrap: wrap;*/
     display:flex;
     flex-direction:column;
-    /*justify-content:space-around;*/
     background-color: rgb(241, 243, 244);
-    border-radius: 3em;
+    /*justify-content:space-around;*/
+    border-radius: 2em;
 }
 div.artist-bottom {
     width:90%;
@@ -4091,7 +4094,27 @@ div.artist-bottom {
     padding-top:2.5rem;
 }
 
-@media screen and (min-width:65em){
+
+.social-links-container {
+    display:flex;
+    justify-content:space-between;
+    margin: 0 2em;
+    
+}
+h6.social-head{
+    font-size:1em;
+    font-family: 'Handlee', cursive;
+    color: #004466;
+    margin:1em 0;
+    padding:0;
+}
+li.single-social-links {
+    justify-content: center;
+    margin:2% 0;
+    padding:0;
+}
+
+@media screen and (min-width:50em){
     
     /*Artist Section*/
 
@@ -4133,9 +4156,49 @@ div.artist-bottom {
         display:flex;
         flex-wrap:wrap;
     }
+    .social-links-container {
+        display:flex;
+        justify-content:space-between;
+        margin: 0 5em;
+        padding:0;
+        width:65%;
     
+    }
+    h6.social-head{
+        font-size:1em;
+        font-family: 'Handlee', cursive;
+        color: #004466;
+        margin:1em 0;
+        padding:0;
+    }
+    li.single-social-links {
+        justify-content: center;
+        margin:2% 0;
+        padding:0;
+    }
 }
+@media screen and (min-width:65em){
     
+   .social-links-container {
+        display:flex;
+        justify-content:space-evenly;
+        margin:0  10em;
+        width:50%;
+    }
+    h6.social-head{
+        font-size:1em;
+        font-family: 'Handlee', cursive;
+        color: #004466;
+        margin:1em 0;
+        padding:0;
+    }
+    li.single-social-links {
+        justify-content: center;
+        margin:2% 0;
+        padding:0;
+    }
+
+}
 /*Single Featured*/
 .featured-work-meta h3,
 .single-work-meta h3 {
