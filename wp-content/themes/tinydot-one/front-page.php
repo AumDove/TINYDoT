@@ -110,7 +110,7 @@ get_header(); ?>
                        
                 </ul>
                 <div class="artist"><!-- Begin Artist Container -->
-                    <div class="artist-bottom">
+                    <div class="artist-top">
                         <p>After struggling to start our business as a web design and development company, we
                             decided it was time to come up with a better solution. We came up with a list
                             of simple steps that anyone can follow, to get their own business started from the
@@ -124,7 +124,7 @@ get_header(); ?>
                     </div>
                 
                 
-                <ul class="artist">
+                <ul class="artist-container">
                     <?php query_posts('post_type=about_section'); ?>
                         <?php while ( have_posts() ): the_post();
                             $memberimage = get_field("member_image");
@@ -134,8 +134,8 @@ get_header(); ?>
 
                         ?>
 
-                        <li>
-                            <figure><a href="<?php the_permalink(); ?>"><?php echo wp_get_attachment_image($memberimage, $size); ?></a></figure>
+                        <li class="box-artist-image">
+                            <figure class="artist-img"><?php echo wp_get_attachment_image($memberimage, $size); ?></figure>
                         </li>
                         <li class="box-artist-desc">
                                 <p class="artist-desc"><?php echo $memberbio; ?></p>
