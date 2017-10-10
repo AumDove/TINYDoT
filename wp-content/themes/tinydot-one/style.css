@@ -1462,19 +1462,26 @@ p.entry-meta {
 
 .site-footer {
 	background-color: #fff;
-	border-top: 1px solid #eee;
-	font-size: 16px;
+	/*border-top: 1px solid #eee;*/
+        font-family: 'Fira Sans', sans-serif;
 	font-size: 1.6rem;
-	line-height: 1;
-	padding: 60px 0;
+	line-height:1.5em;
+	padding: 3em 1em;
 	text-align: center;
+        color:#e8fbfd;
+    background-color: #262e45;
 }
 
 .site-footer p {
 	margin-bottom: 0;
 }
 
-
+.site-footer a {
+    color: #fff;
+}
+.site-footer a:visited {
+    color: #e8fbfd;
+}
 /* # Media Queries
 ---------------------------------------------------------------------------------------------------- */
 
@@ -4109,9 +4116,10 @@ div.artist-top {
 
 .social-links-container {
     display:flex;
-    justify-content:space-between;
-    margin: 0 30%;
-    width:40%;
+    display: flex;
+    justify-content: space-around;
+    margin: 0 3%;
+    width: 90%;
     
 }
 h6.social-head{
@@ -4126,7 +4134,14 @@ li.single-social-links {
     margin:2% 0;
     padding:0;
 }
-
+@media screen and (min-width:40em){
+    .social-links-container {
+        display:flex;
+        justify-content:space-between;
+        margin: 0 30%;
+        width:40%;
+    }
+}
 @media screen and (min-width:50em){
     
     /*Artist Section*/
@@ -4166,19 +4181,7 @@ li.single-social-links {
         display:flex;
         flex-wrap:wrap;
     }
-    .social-links-container {
-        display:flex;
-        justify-content:space-between;
-        margin: 0 30%;
-        width:40%;
     
-    }
-    h6.social-head{
-        
-    }
-    li.single-social-links {
-        
-    }
 }
 @media screen and (min-width:65em){
     
@@ -4667,14 +4670,3 @@ img.alignleft {
 # Footer
 --------------------------------------------------------------*/
 
-.site-footer {
-    padding: 3em 1em;
-    line-height:1.5em;
-    font-family: 'Fira Sans', sans-serif;
-    text-align: center;
-    color:#e8fbfd;
-    background-color: #262e45;
-}
-.site-footer a {
-    color: #fff;
-}
