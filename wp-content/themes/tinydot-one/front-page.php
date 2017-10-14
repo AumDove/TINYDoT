@@ -143,11 +143,24 @@ get_header(); ?>
                         <li class="artist-bottom"> 
                             <blockquote><?php echo $memberquote; ?></blockquote>
                         </li>
-
+                        
+                        
+                        
                     <?php endwhile; //end of the loop. ?>
                     <?php wp_reset_query(); //resets the altered query back to original. ?>
 
                 </ul>
+                    <div class="continue-reading">
+                    
+                            <a href="http://learn.wearetinydot.com/blog" target="_blank" rel="bookmark">
+                                <?php
+                                    printf(
+                                            wp_kses( __( 'Read Blog', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
+                                            the_title( '<span class="screen-reader-text">"', '"</span>', false )
+                                    );
+                                ?>
+                            </a>
+                        </div>
                 </div>
                 <ul class="social-links-container">
                     <h6 class="social-head">Follow Us: </h6>

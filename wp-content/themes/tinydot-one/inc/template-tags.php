@@ -81,7 +81,7 @@ function tinydotone_index_posted_on() {
         
         $author_id = get_the_author_meta( 'ID' );
         
-        if ( meg_validate_gravatar( $author_id ) ) {
+        if ( tinydotone_validate_gravatar( $author_id ) ) {
             echo '<div class="meta-content has-avatar">';
             echo '<div class="author-avatar">' . get_avatar( $author_id ) . '</div>'; 
          } else {
