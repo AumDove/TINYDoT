@@ -89,7 +89,7 @@ get_header(); ?>
                     </div>
 
             </div>
-    <div id="skip-to-contact" class="about-artist"><!-- Begin Artist About Section-->
+        <div id="skip-to-contact" class="about-artist"><!-- Begin Artist About Section-->
                 <h4 class="front-headline">About TiNYDoT</h4>
                 <ul class="social-links-container">
                     <li class="single-social-links"><h6 class="social-head">Follow Us: </h6></li>
@@ -150,19 +150,19 @@ get_header(); ?>
                     <?php wp_reset_query(); //resets the altered query back to original. ?>
 
                 </ul>
-                    <div class="continue-reading">
-                    
-                            <a href="http://learn.wearetinydot.com/blog" target="_blank" rel="bookmark">
-                                <?php
-                                    printf(
-                                            wp_kses( __( 'Read Blog', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
-                                            the_title( '<span class="screen-reader-text">"', '"</span>', false )
-                                    );
-                                ?>
-                            </a>
-                        </div>
+                <div class="continue-reading">
+
+                    <a href="http://learn.wearetinydot.com/blog" target="_blank" rel="bookmark">
+                        <?php
+                            printf(
+                                    wp_kses( __( 'Read Blog', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
+                                    the_title( '<span class="screen-reader-text">"', '"</span>', false )
+                            );
+                        ?>
+                    </a>
                 </div>
-                <ul class="social-links-container">
+                </div>
+<!--                <ul class="social-links-container">
                     <h6 class="social-head">Follow Us: </h6>
                     <?php query_posts('post_type=social_links'); ?>
                         <?php while ( have_posts() ): the_post();
@@ -172,15 +172,15 @@ get_header(); ?>
                         ?>
                     
                         <li class="single-social-links">
-                            <figure class="social-icon"><a target="_blank" href=" <?php echo $medialink ?>  " </a><?php echo $socialicon; ?></figure>
-                            
+                            <figure class="social-icon"><a target="_blank" href="<?php echo $medialink ?>"</a><?php echo $socialicon; ?></figure>
                         </li>
                         
                         <?php endwhile; //end of the loop. ?>
                         <?php wp_reset_query(); //resets the altered query back to original. ?>
                        
-                </ul>
-
+                </ul>-->
+            
+        </div>
     </main><!-- #main -->
 </div><!-- #primary -->
 <?php

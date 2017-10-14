@@ -66,7 +66,7 @@ get_header(); ?>
                 <div id="skip-to-contact" class="contact-section">
                     <div class="continue-reading contact-me">
 
-                        <a href="mailto:tinydotllc@gmail.com?subject=Hey, Meg! What's the next step?">
+                        <a href="mailto:admin@wearetinydot.com?subject=Hey, Meg! What's the next step?">
                             <?php
                                     printf(
                                             wp_kses( __( 'Contact Us', 'tinydotone' ), array( 'span' => array( 'class' => array() ) ) ),
